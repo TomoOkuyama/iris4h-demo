@@ -25,3 +25,9 @@ docs/superpowers/
 
 # Confidential
 docs/confidential-scenario.md
+
+# Legacy portal (replaced by /csp/emr)
+src/portal/
+
+# Claude Code settings
+.claude/
