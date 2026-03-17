@@ -19,9 +19,10 @@
 
 **テーマ:** FHIRリソースを登録するだけで、SQLテーブルに自動マッピングされる
 
-- FHIR R4 エンドポイントに Patient / Observation を POST
+- FHIR R4 エンドポイントに Patient / Observation / Condition / AllergyIntolerance を POST
 - Management Portal の SQL 実行画面で即座にクエリ
 - JsonAdvSQL ストレージ戦略（2024.1〜）による自動テーブル生成
+- メインテーブル + サブテーブル構造（検索パラメータ別）
 
 ```
 デモURL:
@@ -31,12 +32,14 @@
 
 **実行スクリプト:**
 ```bash
-bash demo/01_load_patients.sh       # 患者3名 + Observation4件を登録
+bash demo/01_load_patients.sh       # 患者20名 + 各種臨床データを登録
 ```
 ```sql
 -- SQLクエリ例（demo/02_sql_queries.sql）
 SELECT Key, BirthDate, Gender FROM HSFHIR_X0001_S.Patient
 ```
+
+**実務的なSQLクエリ集:** `demo/05_practical_sql_queries.sql`（22本・8業務シチュエーション対応）
 
 ---
 
@@ -46,7 +49,7 @@ SELECT Key, BirthDate, Gender FROM HSFHIR_X0001_S.Patient
 
 - SQL: `SELECT` 文でリレーショナルアクセス
 - ObjectScript: FHIR Server API でリソースをオブジェクトとして取得（`valueQuantity.value` 等）
-- グローバル変数: データの物理的な実体を直接確認
+- グローバル変数: データの物理的な実体を直接確認（`%Dictionary.CompiledStorage` でグローバル名を動的取得）
 
 ```
 IRISターミナル接続:
@@ -65,14 +68,15 @@ IRISターミナル接続:
 
 **テーマ:** FHIRデータをリアルタイムに処理し、条件に応じて HL7 メッセージを自動生成
 
-- Web アプリで血中酸素飽和度（SpO2）を登録
+- 電子カルテ UI または curl で血中酸素飽和度（SpO2）を登録
 - SpO2 < 90% → BPL（ビジネスプロセス）が検出
 - DTL（データ変換）で HL7 v2.5 SIU_S12 メッセージに変換
-- ファイル出力（`/ISC/Out/`）
+- ファイル出力（`./Out/`）
+- Management Portal のビジュアルトレースで処理フローを可視化
 
 ```
 デモURL:
-  Webアプリ           http://localhost:11202/csp/fhir/portal/patientlist.html
+  電子カルテ UI       http://localhost:11202/csp/emr/index.html
   ビジュアルトレース   http://localhost:11202/csp/healthshare/fhirserver/EnsPortal.MessageViewer.zen
 ```
 
@@ -102,9 +106,10 @@ FHIR Bundle POST
 |------|-----------------|
 | FHIR R4 リポジトリ | REST API でリソースのCRUD |
 | マルチモデルアクセス | FHIR / SQL / ObjectScript / グローバル |
-| JsonAdvSQL | FHIRリソース → SQLテーブル自動マッピング |
+| JsonAdvSQL | FHIRリソース → SQLテーブル自動マッピング（メイン+サブテーブル） |
 | Interoperability | FHIR → BPL → DTL → HL7 のリアルタイム変換 |
 | ビジュアルトレース | メッセージ処理フローの可視化 |
+| 電子カルテ UI | FHIR API ベースのWebアプリ（異常値ハイライト・アラートバッジ） |
 
 ---
 
@@ -115,13 +120,25 @@ FHIR Bundle POST
 | IRIS for Health | 2025.3 |
 | FHIR エンドポイント | `http://localhost:11202/csp/healthshare/fhirserver/fhir/r4` |
 | Management Portal | `http://localhost:11202/csp/sys/%25CSP.Portal.Home.zen` |
-| Web アプリ | `http://localhost:11202/csp/fhir/portal/patientlist.html` |
+| 電子カルテ UI | `http://localhost:11202/csp/emr/index.html` |
 | 認証 | `_SYSTEM` / `SYS` |
 
 ## 事前準備
 
 ```bash
-docker compose up -d          # コンテナ起動
-sleep 20                      # IRIS起動待ち
-bash demo/01_load_patients.sh  # テストデータ登録
+docker compose up -d --build     # コンテナビルド・起動
+sleep 20                         # IRIS起動待ち
+bash demo/01_load_patients.sh    # デモデータ登録（患者20名+臨床データ）
 ```
+
+## デモデータの内容
+
+| リソース | 件数 | 内容 |
+|---------|------|------|
+| Patient | 20名 | 全国各地の日本人（20代〜80代、男女各10名） |
+| Observation (SpO2) | 19件 | 正常(97%)〜重症(78%) |
+| Observation (体温) | 19件 | 平熱(36.3℃)〜高熱(39.1℃) |
+| Observation (血圧) | 13件 | 正常(118/75)〜重症高血圧(170/110) |
+| Observation (検査) | 20件 | 血糖値・HbA1c・ヘモグロビン・クレアチニン |
+| Condition | 23件 | 糖尿病・高血圧・CKD・心不全・COPD・喘息・肺炎・睡眠時無呼吸 |
+| AllergyIntolerance | 10件 | 薬剤（ペニシリン等）・食物（そば等）・環境（花粉等） |
