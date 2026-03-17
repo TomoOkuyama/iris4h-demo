@@ -298,6 +298,7 @@ HS.FHIRServer.Interop.Service（ビジネスサービス）
 ### その他
 
 - [エンジニアのための IRIS for Health ガイド](docs/why-iris-for-health.md) — 「自分で作らなくていいもの」一覧
+- [電子カルテ UI アーキテクチャ（スライド用）](docs/emr-architecture-slides.md) — FHIR API だけで動く電子カルテのデータフロー・技術スタック
 - [IRIS for Health がサポートする医療標準規格](docs/iris-healthcare-standards.md) — HL7 v2/FHIR/CDA/DICOM/IHE 等の対応一覧
 - [症例検索アーキテクチャ（Embedding + Vector Search）](docs/case-search-architecture.md) — 自然言語による類似症例検索の設計
 - [FHIR R4 仕様](https://hl7.org/fhir/R4/)
