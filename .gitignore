@@ -22,10 +22,3 @@ Out/_*
 
 # Docs (auto-generated)
 docs/superpowers/
-
-# Third-party vendor assets (downloaded from iris-fhir-portal)
-src/portal/assets/
-src/portal/jqFhir.js
-src/portal/resources/fonts/
-src/portal/resources/css/compare.css
-src/portal/resources/css/main.css

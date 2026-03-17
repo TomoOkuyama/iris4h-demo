@@ -13,6 +13,5 @@ COPY dockerfiles/iris/iris.key ${ISC_PACKAGE_INSTALLDIR}/mgr/iris.key
 RUN iris start IRIS \
     && iris session IRIS < /tmp/iris.script \
     && iris stop IRIS quietly \
-    && cp -r /opt/app/src/portal ${ISC_PACKAGE_INSTALLDIR}/csp/fhir/portal \
     && mkdir -p ${ISC_PACKAGE_INSTALLDIR}/csp/emr \
     && cp /opt/app/src/emr/index.html ${ISC_PACKAGE_INSTALLDIR}/csp/emr/index.html

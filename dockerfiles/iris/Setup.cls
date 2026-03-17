@@ -65,20 +65,6 @@ ClassMethod setUpFHIR(ns As %String = "fhirserver") As %Status
             set status = ##class(Security.Applications).Create("/csp/emr", .props)
             $$$ThrowOnError(status)
         }
-        // /csp/fhir — 旧パス（互換性）
-        if '##class(Security.Applications).Exists("/csp/fhir") {
-            kill props
-            set props("AutheEnabled") = 64
-            set props("NameSpace") = "FHIRSERVER"
-            set props("Path") = "/usr/irissys/csp/fhir"
-            set props("IsNameSpaceDefault") = 0
-            set props("Recurse") = 1
-            set props("ServeFiles") = 1
-            set props("Type") = 2
-            set props("Enabled") = 1
-            set status = ##class(Security.Applications).Create("/csp/fhir", .props)
-            $$$ThrowOnError(status)
-        }
         set $namespace = ns
 
         // プロダクションの開始
