@@ -1,0 +1,11 @@
+//システム設定変更のため %SYSネームスペースに移動
+set $namespace="%SYS"
+// 事前定義ユーザのパスワードを無期限に設定する（デフォルトパスワードはSYS）
+Do ##class(Security.Users).UnExpireUserPasswords("*")
+// 日本語ロケールに変更（コンテナがUbuntu英語版のためデフォルトは英語ロケール）を利用
+Do ##class(Config.NLS.Locales).Install("jpuw")
+// 20250430 Tomo Okuyama Added -------------
+// FHIRサーバ作成用クラスインポートと実行
+do $system.OBJ.Load("/opt/app/Setup.cls", "ck")
+set sc = ##class(ISJ.Setup).setUpFHIR("fhirserver")
+halt

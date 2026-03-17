@@ -1,0 +1,31 @@
+# IRIS
+dockerfiles/iris/iris.key
+dockerfiles/iris/iris.key.old
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Python
+.venv/
+.conda/
+__pycache__/
+
+# HL7 output files (generated at runtime)
+Out/_*
+
+# Docker
+*.log
+
+# Docs (auto-generated)
+docs/superpowers/
+
+# Third-party vendor assets (downloaded from iris-fhir-portal)
+src/portal/assets/
+src/portal/jqFhir.js
+src/portal/resources/fonts/
+src/portal/resources/css/compare.css
+src/portal/resources/css/main.css

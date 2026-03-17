@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <title>IRIS 電子カルテ デモ</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="shortcut icon" href="resources/img/ISC_IRIS_icon.ico">
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:400,500,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/vendor/open-iconic/css/open-iconic-bootstrap.min.css">
+  <link rel="stylesheet" href="assets/stylesheets/toastr.min.css">
+  <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.css">
+  <link rel="stylesheet" href="assets/vendor/flatpickr/flatpickr.min.css">
+  <link rel="stylesheet" href="assets/stylesheets/theme.min.css" data-skin="default">
+  <style>
+    body { font-family: 'Noto Sans JP', sans-serif; background: #f0f2f5; }
+    .app-header { background: #1a3a5c; }
+    .app-header .navbar-brand { color: #fff; font-weight: 700; font-size: 1.1rem; }
+    .app-header .header-nav-item { color: rgba(255,255,255,.8); font-size: .85rem; }
+    .patient-list-panel { background: #fff; border-right: 1px solid #dee2e6; height: calc(100vh - 56px); overflow-y: auto; }
+    .patient-list-panel .list-group-item { cursor: pointer; border-left: 3px solid transparent; padding: .6rem .8rem; }
+    .patient-list-panel .list-group-item:hover { background: #e8f4fd; }
+    .patient-list-panel .list-group-item.active { border-left-color: #007bff; background: #e8f4fd; }
+    .patient-list-panel .patient-id-badge { font-size: .7rem; color: #888; }
+    .patient-list-panel .patient-gender { font-size: .75rem; }
+    .chart-area { height: calc(100vh - 56px); overflow-y: auto; padding: 1rem; }
+    .patient-header-card { background: linear-gradient(135deg, #1a3a5c, #2d5f8a); color: #fff; border-radius: .5rem; }
+    .patient-header-card .patient-name { font-size: 1.5rem; font-weight: 700; }
+    .patient-header-card .patient-kana { font-size: .85rem; opacity: .8; }
+    .patient-header-card .patient-meta { font-size: .85rem; opacity: .9; }
+    .patient-header-card .patient-id-display { background: rgba(255,255,255,.15); border-radius: .25rem; padding: .2rem .5rem; font-size: .8rem; }
+    .alert-badge { display: inline-block; padding: .15rem .4rem; border-radius: .25rem; font-size: .7rem; font-weight: 700; }
+    .alert-badge-danger { background: #dc3545; color: #fff; }
+    .alert-badge-warning { background: #ffc107; color: #333; }
+    .alert-badge-info { background: #17a2b8; color: #fff; }
+    .section-card { border: none; border-radius: .5rem; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: .75rem; }
+    .section-card .card-header { background: #fff; border-bottom: 2px solid #e9ecef; padding: .5rem .75rem; font-weight: 600; font-size: .9rem; }
+    .section-card .card-body { padding: .5rem .75rem; }
+    .section-card .table { margin-bottom: 0; font-size: .82rem; }
+    .section-card .table th { background: #f8f9fa; font-weight: 600; padding: .3rem .5rem; white-space: nowrap; }
+    .section-card .table td { padding: .3rem .5rem; }
+    .section-icon { width: 20px; text-align: center; margin-right: .4rem; }
+    .vitals-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .5rem; }
+    .vital-tile { background: #f8f9fa; border-radius: .4rem; padding: .5rem; text-align: center; border: 1px solid #e9ecef; }
+    .vital-tile .vital-label { font-size: .7rem; color: #666; margin-bottom: .15rem; }
+    .vital-tile .vital-value { font-size: 1.3rem; font-weight: 700; }
+    .vital-tile .vital-unit { font-size: .7rem; color: #888; }
+    .vital-tile .vital-date { font-size: .6rem; color: #aaa; }
+    .vital-tile.danger { border-color: #dc3545; background: #fff5f5; }
+    .vital-tile.danger .vital-value { color: #dc3545; }
+    .vital-tile.warning { border-color: #ffc107; background: #fffdf0; }
+    .vital-tile.warning .vital-value { color: #856404; }
+    .condition-tag { display: inline-block; background: #e9ecef; border-radius: 1rem; padding: .15rem .6rem; margin: .15rem .2rem; font-size: .78rem; }
+    .condition-tag.active-condition { background: #cce5ff; color: #004085; }
+    .allergy-tag { display: inline-block; border-radius: 1rem; padding: .15rem .6rem; margin: .15rem .2rem; font-size: .78rem; }
+    .allergy-tag.high { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .allergy-tag.low { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    .allergy-tag.unable-to-assess { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
+    .oximeter-section { background: #f0f7ff; border: 1px solid #b8daff; border-radius: .5rem; padding: .75rem; }
+    .oximeter-section input[type=range] { width: 100%; }
+    .oximeter-value { font-size: 2rem; font-weight: 700; }
+    .no-patient-selected { display: flex; align-items: center; justify-content: center; height: 100%; color: #aaa; font-size: 1.1rem; }
+    .search-box { padding: .5rem; border-bottom: 1px solid #dee2e6; }
+    .btn-group-sm .btn { font-size: .78rem; }
+    .tab-section { border-bottom: 2px solid #007bff; margin-bottom: .75rem; }
+    .tab-section .nav-link { color: #495057; font-size: .85rem; font-weight: 500; padding: .4rem .8rem; }
+    .tab-section .nav-link.active { color: #007bff; border-bottom: 2px solid #007bff; margin-bottom: -2px; }
+  </style>
+</head>
+
+<body>
+  <div class="app has-fullwidth">
+    <header class="app-header" style="min-height:56px;">
+      <nav class="navbar navbar-expand-lg py-1 px-3" style="background:#1a3a5c;">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <i class="fas fa-hospital-alt mr-2" style="color:#5cb8ff;"></i>
+          <span style="color:#fff;">IRIS 電子カルテ</span>
+          <span class="ml-2" style="color:rgba(255,255,255,.5); font-size:.75rem;">Powered by FHIR R4</span>
+        </a>
+        <div class="ml-auto d-flex align-items-center">
+          <span class="header-nav-item mr-3"><i class="fas fa-user-md mr-1"></i> 奥山 医師</span>
+          <span class="header-nav-item"><i class="fas fa-clock mr-1"></i> <span id="currentTime"></span></span>
+        </div>
+      </nav>
+    </header>
+
+    <main style="display:flex; height:calc(100vh - 56px);">
+      <!-- 左: 患者リスト -->
+      <div class="patient-list-panel" style="width:280px; min-width:280px;">
+        <div class="search-box">
+          <div class="input-group input-group-sm">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+            </div>
+            <input type="text" class="form-control" id="searchClients" placeholder="患者検索...">
+            <div class="input-group-append">
+              <button id="reloadList" class="btn btn-outline-secondary" title="再読込"><i class="fas fa-sync-alt"></i></button>
+            </div>
+          </div>
+          <div class="mt-1 d-flex justify-content-between">
+            <small class="text-muted"><span id="patientCount">0</span> 名</small>
+            <button id="insertDataBtn" class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#registerModal"><i class="fas fa-user-plus"></i> 新規</button>
+          </div>
+        </div>
+        <div id="listgroup" class="list-group list-group-flush"></div>
+      </div>
+
+      <!-- 右: カルテ本体 -->
+      <div class="chart-area flex-grow-1" id="chartArea">
+        <div class="no-patient-selected" id="noPatientMsg">
+          <div class="text-center">
+            <i class="fas fa-notes-medical fa-3x mb-3" style="color:#ccc;"></i>
+            <p>左の患者一覧から患者を選択してください</p>
+          </div>
+        </div>
+
+        <div id="patientChart" style="display:none;">
+          <!-- 患者ヘッダー -->
+          <div class="patient-header-card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="patient-name" id="dispName"></div>
+                <div class="patient-kana" id="dispKana"></div>
+                <div class="patient-meta mt-1">
+                  <span id="dispGenderAge"></span>
+                  <span class="mx-2">|</span>
+                  <span><i class="fas fa-birthday-cake mr-1"></i><span id="dispBirth"></span></span>
+                  <span class="mx-2">|</span>
+                  <span><i class="fas fa-phone mr-1"></i><span id="dispPhone"></span></span>
+                </div>
+                <div class="patient-meta mt-1">
+                  <span><i class="fas fa-map-marker-alt mr-1"></i><span id="dispAddress"></span></span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="patient-id-display mb-1"><i class="fas fa-id-card mr-1"></i>ID: <span id="dispMRN"></span></div>
+                <div class="patient-id-display"><i class="fas fa-fire mr-1"></i>FHIR: <span id="dispFhirId"></span></div>
+                <div id="alertBadges" class="mt-2"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- タブナビゲーション -->
+          <ul class="nav tab-section" id="chartTabs">
+            <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#tabSummary"><i class="fas fa-clipboard-list mr-1"></i>サマリ</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tabVitals"><i class="fas fa-heartbeat mr-1"></i>バイタル</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tabLab"><i class="fas fa-flask mr-1"></i>検査結果</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tabOximeter"><i class="fas fa-lungs mr-1"></i>SpO2入力</a></li>
+            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tabFhirRaw"><i class="fas fa-code mr-1"></i>FHIR JSON</a></li>
+          </ul>
+
+          <div class="tab-content">
+            <!-- サマリタブ -->
+            <div class="tab-pane fade show active" id="tabSummary">
+              <!-- 病名 -->
+              <div class="card section-card">
+                <div class="card-header"><i class="fas fa-diagnoses section-icon text-primary"></i>病名・既往歴</div>
+                <div class="card-body" id="conditionTags"><span class="text-muted">データなし</span></div>
+              </div>
+              <!-- アレルギー -->
+              <div class="card section-card">
+                <div class="card-header"><i class="fas fa-allergies section-icon text-danger"></i>アレルギー <span id="badgeAllergy" class="badge badge-pill badge-danger ml-1"></span></div>
+                <div class="card-body" id="allergyTags"><span class="text-muted">登録なし</span></div>
+              </div>
+              <!-- 最新バイタル（タイル） -->
+              <div class="card section-card">
+                <div class="card-header"><i class="fas fa-heartbeat section-icon text-success"></i>最新バイタルサイン</div>
+                <div class="card-body">
+                  <div class="vitals-grid" id="vitalsGrid"></div>
+                </div>
+              </div>
+              <!-- 最新検査 -->
+              <div class="card section-card">
+                <div class="card-header"><i class="fas fa-flask section-icon text-info"></i>最新検査結果 <span id="badgeLaboratory" class="badge badge-pill badge-info ml-1"></span></div>
+                <div class="card-body p-0">
+                  <table class="table table-hover" id="labSummaryTable">
+                    <thead><tr><th>検査項目</th><th>値</th><th>単位</th><th>日時</th></tr></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- バイタルタブ -->
+            <div class="tab-pane fade" id="tabVitals">
+              <div class="card section-card">
+                <div class="card-header"><i class="fas fa-heartbeat section-icon text-success"></i>バイタルサイン履歴 <span id="badgeVitalSigns" class="badge badge-pill badge-success ml-1"></span></div>
+                <div class="card-body p-0">
+                  <table class="table table-hover" id="vitalSignsTable">
+                    <thead><tr><th>項目</th><th>値</th><th>単位</th><th>測定日時</th><th>判定</th></tr></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- 検査結果タブ -->
+            <div class="tab-pane fade" id="tabLab">
+              <div class="card section-card">
+                <div class="card-header"><i class="fas fa-flask section-icon text-info"></i>検査結果履歴</div>
+                <div class="card-body p-0">
+                  <table class="table table-hover" id="laboratoryTable">
+                    <thead><tr><th>検査項目</th><th>値</th><th>単位</th><th>検査日時</th><th>判定</th></tr></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- SpO2入力タブ -->
+            <div class="tab-pane fade" id="tabOximeter">
+              <div class="card section-card">
+                <div class="card-header"><i class="fas fa-lungs section-icon text-primary"></i>パルスオキシメーター入力</div>
+                <div class="card-body">
+                  <div class="oximeter-section">
+                    <div class="text-center mb-2">
+                      <div class="vital-label">血中酸素飽和度 (SpO2)</div>
+                      <div class="oximeter-value"><span id="output">90</span><span style="font-size:1rem;">%</span></div>
+                    </div>
+                    <input type="range" id="myRange" name="points" min="80" max="100" value="90" class="custom-range" disabled>
+                    <div class="d-flex justify-content-between mt-1">
+                      <small class="text-danger font-weight-bold">80%</small>
+                      <small class="text-warning">90%</small>
+                      <small class="text-success font-weight-bold">100%</small>
+                    </div>
+                    <div class="text-center mt-3">
+                      <button id="updateData" class="btn btn-primary" disabled>
+                        <i class="fas fa-save mr-1"></i>SpO2を記録する
+                      </button>
+                    </div>
+                    <div class="alert alert-info mt-3 mb-0" style="font-size:.8rem;">
+                      <i class="fas fa-info-circle mr-1"></i>
+                      SpO2が90%未満の場合、自動的にHL7 SIU_S12メッセージが生成され、スケジューリングシステムに送信されます。
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- FHIR JSONタブ -->
+            <div class="tab-pane fade" id="tabFhirRaw">
+              <div class="card section-card">
+                <div class="card-header"><i class="fas fa-code section-icon text-secondary"></i>FHIR リソース (JSON)</div>
+                <div class="card-body">
+                  <textarea class="form-control" id="fhirdatasource" rows="25" readonly style="font-family:monospace; font-size:.8rem; background:#f8f9fa;"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 新規患者登録モーダル -->
+  <div class="modal fade" id="registerModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white py-2">
+          <h5 class="modal-title"><i class="fas fa-user-plus mr-2"></i>新規患者登録</h5>
+          <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <form id="registerForm">
+            <div class="form-row">
+              <div class="col-md-6 mb-2"><label class="small font-weight-bold">診察券番号</label><input type="text" class="form-control form-control-sm" id="regMRN"></div>
+              <div class="col-md-6 mb-2"><label class="small font-weight-bold">性別</label>
+                <select class="custom-select custom-select-sm" id="regGender"><option value="">選択...</option><option value="male">男性</option><option value="female">女性</option></select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="col-md-6 mb-2"><label class="small font-weight-bold">姓</label><input type="text" class="form-control form-control-sm" id="regLastName"></div>
+              <div class="col-md-6 mb-2"><label class="small font-weight-bold">名</label><input type="text" class="form-control form-control-sm" id="regFirstName"></div>
+            </div>
+            <div class="form-row">
+              <div class="col-md-6 mb-2"><label class="small font-weight-bold">姓（カナ）</label><input type="text" class="form-control form-control-sm" id="regKanaLastName"></div>
+              <div class="col-md-6 mb-2"><label class="small font-weight-bold">名（カナ）</label><input type="text" class="form-control form-control-sm" id="regKanaFirstName"></div>
+            </div>
+            <div class="form-row">
+              <div class="col-md-6 mb-2"><label class="small font-weight-bold">生年月日</label><input type="text" class="form-control form-control-sm" id="regBirth" data-toggle="flatpickr"></div>
+              <div class="col-md-6 mb-2"><label class="small font-weight-bold">郵便番号</label><input type="text" class="form-control form-control-sm" id="regPostal"></div>
+            </div>
+            <div class="form-row">
+              <div class="col-md-12 mb-2"><label class="small font-weight-bold">住所</label><input type="text" class="form-control form-control-sm" id="regAddress"></div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">キャンセル</button>
+          <button type="button" class="btn btn-sm btn-primary" id="insertData"><i class="fas fa-save mr-1"></i>登録</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/vendor/jquery/jquery.min.js"></script>
+  <script src="assets/vendor/bootstrap/js/popper.min.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.min.js"></script>
+  <script src="assets/javascript/toastr.min.js"></script>
+  <script src="assets/vendor/flatpickr/flatpickr.min.js"></script>
+  <script src="assets/javascript/theme.min.js"></script>
+  <script src="jqFhir.js"></script>
+  <script src="resources/js/myFHIR.js"></script>
+</body>
+
+</html>

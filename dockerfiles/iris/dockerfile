@@ -1,0 +1,18 @@
+FROM containers.intersystems.com/intersystems/irishealth:2025.3
+
+USER root
+WORKDIR /opt/app
+RUN chown ${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_IRISGROUP} /opt/app
+
+USER ${ISC_PACKAGE_MGRUSER}
+COPY --chown=${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_IRISGROUP} dockerfiles/iris/Setup.cls .
+COPY --chown=${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_IRISGROUP} src src
+COPY dockerfiles/iris/iris.script /tmp/iris.script
+COPY dockerfiles/iris/iris.key ${ISC_PACKAGE_INSTALLDIR}/mgr/iris.key
+
+RUN iris start IRIS \
+    && iris session IRIS < /tmp/iris.script \
+    && iris stop IRIS quietly \
+    && cp -r /opt/app/src/portal ${ISC_PACKAGE_INSTALLDIR}/csp/fhir/portal \
+    && mkdir -p ${ISC_PACKAGE_INSTALLDIR}/csp/emr \
+    && cp /opt/app/src/emr/index.html ${ISC_PACKAGE_INSTALLDIR}/csp/emr/index.html

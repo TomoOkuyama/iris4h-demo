@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+
+  # --- 既存サービス ---
+  iris:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/iris/dockerfile
+    container_name: iris4h
+    hostname: iris
+    ports:
+      - "11201:1972"
+      - "11204:52773"
+    init: true
+    volumes:
+      - ./dockerfiles/iris/opt/iris:/opt/iris
+      - ./Out:/ISC/Out
+    tty: true
+    environment:
+      - TZ=JST-9
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  webgw:
+    build: ./dockerfiles/webgw
+    container_name: webgw4h
+    hostname: webgw
+    init: true
+    volumes:
+      - ./dockerfiles/webgw/opt/iris:/opt/iris
+    ports:
+      - "11202:80"
+      - "11203:443"
+    environment:
+      - ISC_CSP_CONF_FILE=/opt/iris/CSP.conf
+      - ISC_CSP_INI_FILE=/opt/iris/CSP.ini
+    tty: true

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IRIS 電子カルテ</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:#eef1f5;color:#333;font-size:14px;}
+.top-bar{background:linear-gradient(90deg,#0d2137,#1a3f6b);color:#fff;height:48px;display:flex;align-items:center;padding:0 16px;position:fixed;top:0;left:0;right:0;z-index:100;}
+.top-bar .logo{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
+.top-bar .logo i{color:#4db8ff;font-size:18px;}
+.top-bar .powered{font-size:11px;opacity:.5;margin-left:8px;}
+.top-bar .user-info{margin-left:auto;font-size:12px;opacity:.8;display:flex;align-items:center;gap:16px;}
+.main-wrap{display:flex;margin-top:48px;height:calc(100vh - 48px);}
+.left-panel{width:270px;min-width:270px;background:#fff;border-right:1px solid #d0d5dd;display:flex;flex-direction:column;overflow:hidden;}
+.search-area{padding:8px;border-bottom:1px solid #e5e7eb;}
+.search-area input{font-size:13px;border-radius:4px;}
+.search-area .meta{display:flex;justify-content:space-between;align-items:center;margin-top:4px;font-size:11px;color:#888;}
+.patient-list{flex:1;overflow-y:auto;}
+.pt-item{padding:8px 10px;border-bottom:1px solid #f0f0f0;cursor:pointer;border-left:3px solid transparent;transition:.15s;}
+.pt-item:hover{background:#f0f7ff;}
+.pt-item.active{background:#e3f0ff;border-left-color:#007bff;}
+.pt-item .pt-name{font-weight:600;font-size:13px;}
+.pt-item .pt-kana{font-size:10px;color:#999;}
+.pt-item .pt-meta{font-size:10px;color:#777;margin-top:1px;}
+.pt-item .pt-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;}
+.pt-avatar-m{background:#3a7bd5;}
+.pt-avatar-f{background:#d5537a;}
+.right-panel{flex:1;overflow-y:auto;padding:12px 16px;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#bbb;}
+.empty-state i{font-size:48px;margin-bottom:12px;}
+/* Patient Header */
+.pt-header{background:linear-gradient(135deg,#0d2137,#1e4d7b);color:#fff;border-radius:8px;padding:14px 18px;margin-bottom:12px;}
+.pt-header .pt-h-name{font-size:22px;font-weight:700;}
+.pt-header .pt-h-kana{font-size:12px;opacity:.7;}
+.pt-header .pt-h-meta{font-size:12px;opacity:.85;margin-top:4px;}
+.pt-header .pt-h-ids{text-align:right;}
+.pt-header .id-pill{background:rgba(255,255,255,.15);border-radius:3px;padding:2px 8px;font-size:11px;display:inline-block;margin:1px 0;}
+.alert-pills{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;justify-content:flex-end;}
+.alert-pill{padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;}
+.alert-pill-red{background:#dc3545;color:#fff;}
+.alert-pill-yellow{background:#ffc107;color:#333;}
+.alert-pill-blue{background:#17a2b8;color:#fff;}
+/* Tabs */
+.nav-tabs-custom{border-bottom:2px solid #007bff;margin-bottom:12px;}
+.nav-tabs-custom .nav-link{color:#555;font-size:13px;font-weight:500;padding:6px 14px;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;}
+.nav-tabs-custom .nav-link.active{color:#007bff;border-bottom-color:#007bff;background:transparent;}
+.nav-tabs-custom .nav-link:hover{color:#007bff;}
+/* Cards */
+.s-card{background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:10px;overflow:hidden;}
+.s-card-header{padding:8px 12px;font-weight:600;font-size:13px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;gap:6px;}
+.s-card-body{padding:10px 12px;}
+.s-card-body.p0{padding:0;}
+/* Tables */
+.s-table{width:100%;font-size:12px;margin:0;}
+.s-table th{background:#f8f9fb;font-weight:600;padding:5px 8px;white-space:nowrap;border-bottom:1px solid #e9ecef;}
+.s-table td{padding:5px 8px;border-bottom:1px solid #f5f5f5;}
+.s-table tr.row-danger{background:#fff5f5;}
+.s-table tr.row-warning{background:#fffcf0;}
+.s-table .badge-sm{font-size:10px;padding:1px 6px;}
+/* Vitals Grid */
+.v-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;}
+.v-tile{background:#f8f9fb;border:1px solid #e9ecef;border-radius:6px;padding:8px;text-align:center;}
+.v-tile.danger{border-color:#dc3545;background:#fff5f5;}
+.v-tile.warning{border-color:#ffc107;background:#fffcf0;}
+.v-tile .v-label{font-size:10px;color:#888;margin-bottom:2px;}
+.v-tile .v-val{font-size:22px;font-weight:700;line-height:1.1;}
+.v-tile.danger .v-val{color:#dc3545;}
+.v-tile.warning .v-val{color:#856404;}
+.v-tile .v-unit{font-size:10px;color:#888;}
+.v-tile .v-date{font-size:9px;color:#bbb;margin-top:2px;}
+/* Tags */
+.cond-tag{display:inline-block;background:#dbeafe;color:#1e40af;border-radius:12px;padding:2px 10px;margin:2px;font-size:11px;}
+.allergy-tag{display:inline-block;border-radius:12px;padding:2px 10px;margin:2px;font-size:11px;}
+.allergy-high{background:#fecaca;color:#991b1b;border:1px solid #fca5a5;}
+.allergy-low{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.allergy-default{background:#e5e7eb;color:#374151;border:1px solid #d1d5db;}
+/* Oximeter */
+.oxi-box{background:#f0f7ff;border:1px solid #b8daff;border-radius:8px;padding:16px;text-align:center;}
+.oxi-val{font-size:48px;font-weight:700;line-height:1;}
+.oxi-slider{width:100%;margin:12px 0;}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo"><i class="fas fa-hospital-alt"></i>IRIS 電子カルテ<span class="powered">Powered by FHIR R4 / InterSystems IRIS for Health</span></div>
+  <div class="user-info">
+    <span><i class="fas fa-user-md mr-1"></i>奥山 医師</span>
+    <span id="clock"></span>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <!-- Left -->
+  <div class="left-panel">
+    <div class="search-area">
+      <input type="text" class="form-control form-control-sm" id="searchBox" placeholder="患者検索...">
+      <div class="meta"><span><span id="ptCount">-</span> 名</span></div>
+    </div>
+    <div class="patient-list" id="patientList"></div>
+  </div>
+
+  <!-- Right -->
+  <div class="right-panel" id="rightPanel">
+    <div class="empty-state" id="emptyState">
+      <i class="fas fa-notes-medical"></i>
+      <div>左の患者一覧から患者を選択してください</div>
+    </div>
+    <div id="chartView" style="display:none;">
+      <div class="pt-header" id="ptHeader"></div>
+      <ul class="nav nav-tabs-custom" id="chartTabs" role="tablist">
+        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#tabSum"><i class="fas fa-clipboard-list mr-1"></i>サマリ</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tabVital"><i class="fas fa-heartbeat mr-1"></i>バイタル</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tabLab"><i class="fas fa-flask mr-1"></i>検査</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tabOxi"><i class="fas fa-lungs mr-1"></i>SpO2入力</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#tabJson"><i class="fas fa-code mr-1"></i>FHIR</a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" id="tabSum"></div>
+        <div class="tab-pane" id="tabVital"></div>
+        <div class="tab-pane" id="tabLab"></div>
+        <div class="tab-pane" id="tabOxi"></div>
+        <div class="tab-pane" id="tabJson"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const FHIR_BASE = '/csp/healthshare/fhirserver/fhir/r4';
+const AUTH = 'Basic ' + btoa('_SYSTEM:SYS');
+const HEADERS = {'Accept':'application/fhir+json','Content-Type':'application/fhir+json;charset=utf-8','Authorization':AUTH};
+
+async function fhirGet(path) {
+  const res = await fetch(FHIR_BASE + path, {headers: HEADERS});
+  return res.json();
+}
+async function fhirPost(path, body) {
+  const res = await fetch(FHIR_BASE + path, {method:'POST', headers: HEADERS, body: JSON.stringify(body)});
+  return res;
+}
+
+function age(bd){const t=new Date(),b=new Date(bd);let a=t.getFullYear()-b.getFullYear();if(t.getMonth()<b.getMonth()||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))a--;return a;}
+function fmtDt(d){return d?d.replace('T',' ').substring(0,16):'';}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+
+// Judgment helpers
+function jVital(code,v){
+  v=parseFloat(v);
+  if(code==='2708-6'||code==='59408-5'){if(v<90)return{c:'danger',l:'危険'};if(v<95)return{c:'warning',l:'注意'};return{c:'',l:'正常'};}
+  if(code==='8310-5'){if(v>=38)return{c:'danger',l:'高熱'};if(v>=37.5)return{c:'warning',l:'微熱'};return{c:'',l:'正常'};}
+  if(code==='8480-6'){if(v>=160)return{c:'danger',l:'高値'};if(v>=140)return{c:'warning',l:'注意'};return{c:'',l:'正常'};}
+  if(code==='8462-4'){if(v>=100)return{c:'danger',l:'高値'};if(v>=90)return{c:'warning',l:'注意'};return{c:'',l:'正常'};}
+  return{c:'',l:''};
+}
+function jLab(code,v){
+  v=parseFloat(v);
+  if(code==='2345-7'){if(v>=200)return{c:'danger',l:'高値'};if(v>=126)return{c:'warning',l:'注意'};return{c:'',l:'正常'};}
+  if(code==='4548-4'){if(v>=8)return{c:'danger',l:'高値'};if(v>=7)return{c:'warning',l:'注意'};return{c:'',l:'正常'};}
+  if(code==='718-7'){if(v<8)return{c:'danger',l:'低値'};if(v<10)return{c:'warning',l:'低値'};return{c:'',l:'正常'};}
+  if(code==='2160-0'){if(v>=2)return{c:'danger',l:'高値'};if(v>=1.5)return{c:'warning',l:'注意'};return{c:'',l:'正常'};}
+  return{c:'',l:''};
+}
+function badge(j){if(!j.l)return'';const cl=j.c==='danger'?'badge-danger':j.c==='warning'?'badge-warning':'badge-success';return`<span class="badge ${cl} badge-sm">${j.l}</span>`;}
+
+// Clock
+function tick(){document.getElementById('clock').textContent=new Date().toLocaleString('ja-JP',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});}
+tick();setInterval(tick,30000);
+
+// Load patient list
+(async function(){
+  const d=await fhirGet('/Patient?_sort=-_lastUpdated&_count=100');
+  const el=document.getElementById('patientList');
+  let count=0;
+  if(d.entry){d.entry.forEach(e=>{
+    count++;
+    const r=e.resource;
+    const nm=(r.name&&r.name[0])?((r.name[0].family||'')+' '+(r.name[0].given?r.name[0].given[0]:'')).trim():'不明';
+    const kn=(r.name&&r.name[1])?((r.name[1].family||'')+' '+(r.name[1].given?r.name[1].given[0]:'')).trim():'';
+    const g=r.gender==='male'?'男':'女';
+    const gc=r.gender==='male'?'pt-avatar-m':'pt-avatar-f';
+    const a=age(r.birthDate);
+    const mrn=r.identifier&&r.identifier[0]?r.identifier[0].value:r.id;
+    el.insertAdjacentHTML('beforeend',
+      `<div class="pt-item" data-id="${r.id}" onclick="selectPatient(${r.id})">
+        <div class="d-flex align-items-center">
+          <div class="pt-avatar ${gc} mr-2">${esc(nm[0])}</div>
+          <div style="flex:1;min-width:0;">
+            <div class="pt-name">${esc(nm)}</div>
+            <div class="pt-kana">${esc(kn)}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="pt-meta" style="color:${r.gender==='male'?'#3a7bd5':'#d5537a'}">${g} ${a}歳</div>
+            <div class="pt-meta">ID:${esc(mrn)}</div>
+          </div>
+        </div>
+      </div>`);
+  });}
+  document.getElementById('ptCount').textContent=count;
+})();
+
+// Search filter
+document.getElementById('searchBox').addEventListener('input',function(){
+  const q=this.value.toLowerCase();
+  document.querySelectorAll('.pt-item').forEach(el=>{el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';});
+});
+
+let currentPatient=null;
+
+async function selectPatient(id){
+  document.querySelectorAll('.pt-item').forEach(el=>el.classList.toggle('active',el.dataset.id==id));
+  document.getElementById('emptyState').style.display='none';
+  document.getElementById('chartView').style.display='block';
+  // Reset tabs to summary
+  $('#chartTabs a:first').tab('show');
+
+  const d=await fhirGet(`/Patient?_id=${id}`);
+  if(!d.entry||!d.entry.length)return;
+  const r=d.entry[0].resource;
+  currentPatient=r;
+
+  // Header
+  const nm=(r.name&&r.name[0])?((r.name[0].family||'')+' '+(r.name[0].given?r.name[0].given[0]:'')).trim():'';
+  const kn=(r.name&&r.name[1])?((r.name[1].family||'')+' '+(r.name[1].given?r.name[1].given[0]:'')).trim():'';
+  const g=r.gender==='male'?'男性':'女性';
+  const gi=r.gender==='male'?'fa-mars':'fa-venus';
+  const a=age(r.birthDate);
+  const ph=r.telecom&&r.telecom[0]?r.telecom[0].value:'-';
+  const addr=r.address&&r.address[0]?((r.address[0].postalCode?'〒'+r.address[0].postalCode+' ':'')+( r.address[0].text||'')):'-';
+  const mrn=r.identifier&&r.identifier[0]?r.identifier[0].value:'-';
+
+  document.getElementById('ptHeader').innerHTML=
+    `<div class="d-flex justify-content-between align-items-start">
+      <div>
+        <div class="pt-h-name">${esc(nm)}</div>
+        <div class="pt-h-kana">${esc(kn)}</div>
+        <div class="pt-h-meta"><i class="fas ${gi} mr-1"></i>${g} (${a}歳) &nbsp;|&nbsp; <i class="fas fa-birthday-cake mr-1"></i>${r.birthDate} &nbsp;|&nbsp; <i class="fas fa-phone mr-1"></i>${esc(ph)}</div>
+        <div class="pt-h-meta"><i class="fas fa-map-marker-alt mr-1"></i>${esc(addr)}</div>
+      </div>
+      <div class="pt-h-ids">
+        <div class="id-pill"><i class="fas fa-id-card mr-1"></i>ID: ${esc(mrn)}</div>
+        <div class="id-pill"><i class="fas fa-fire mr-1"></i>FHIR: ${r.id}</div>
+        <div class="alert-pills" id="alertPills"></div>
+      </div>
+    </div>`;
+
+  // Load all data
+  const [conditions,allergies,vitals,labs]=await Promise.all([
+    fhirGet(`/Condition?patient=${id}`),
+    fhirGet(`/AllergyIntolerance?patient=${id}`),
+    fhirGet(`/Observation?patient=${id}&category=vital-signs&_sort=-date&_count=50`),
+    fhirGet(`/Observation?patient=${id}&category=laboratory&_sort=-date&_count=50`)
+  ]);
+
+  renderSummary(conditions,allergies,vitals,labs);
+  renderVitals(vitals);
+  renderLabs(labs);
+  renderOximeter();
+  renderJson(r,conditions,allergies,vitals,labs);
+}
+window.selectPatient=selectPatient;
+
+function renderSummary(cond,allerg,vitals,labs){
+  let alerts=[];
+  // Conditions
+  let condHtml='<span style="color:#bbb;font-size:12px;">登録なし</span>';
+  if(cond.entry&&cond.total>0){
+    condHtml=cond.entry.map(e=>{
+      const c=e.resource;
+      const nm=c.code&&c.code.text?c.code.text:(c.code&&c.code.coding&&c.code.coding[0]?c.code.coding[0].display:'不明');
+      const icd=c.code&&c.code.coding&&c.code.coding[0]?c.code.coding[0].code:'';
+      return`<span class="cond-tag" title="ICD-10:${icd}"><i class="fas fa-file-medical mr-1"></i>${esc(nm)} <small style="opacity:.6">(${icd})</small></span>`;
+    }).join('');
+  }
+
+  // Allergies
+  let allergHtml='<span style="color:#bbb;font-size:12px;">登録なし</span>';
+  let allergCount=allerg.total||0;
+  if(allerg.entry&&allergCount>0){
+    allergHtml=allerg.entry.map(e=>{
+      const a=e.resource;
+      const nm=a.code&&a.code.text?a.code.text:(a.code&&a.code.coding&&a.code.coding[0]?a.code.coding[0].display:'不明');
+      const crit=a.criticality||'unknown';
+      const cat=a.category&&a.category[0]?a.category[0]:'';
+      const icon=cat==='medication'?'fa-pills':cat==='food'?'fa-utensils':'fa-wind';
+      const cls=crit==='high'?'allergy-high':crit==='low'?'allergy-low':'allergy-default';
+      if(crit==='high')alerts.push('<span class="alert-pill alert-pill-red"><i class="fas fa-exclamation-triangle mr-1"></i>アレルギー注意</span>');
+      return`<span class="allergy-tag ${cls}"><i class="fas ${icon} mr-1"></i>${esc(nm)}</span>`;
+    }).join('');
+  }
+
+  // Latest vitals
+  let vGrid='';
+  const latestBy={};
+  let hasSpO2Alert=false,hasTempAlert=false,hasBPAlert=false;
+  if(vitals.entry){vitals.entry.forEach(e=>{
+    const o=e.resource;
+    if(o.valueQuantity){
+      const cd=o.code.coding[0].code;
+      if(!latestBy[cd])latestBy[cd]={display:o.code.coding[0].display,val:o.valueQuantity.value,unit:o.valueQuantity.unit,dt:o.effectiveDateTime};
+      const j=jVital(cd,o.valueQuantity.value);
+      if(j.c==='danger'&&(cd==='2708-6'||cd==='59408-5'))hasSpO2Alert=true;
+      if(j.c==='danger'&&cd==='8310-5')hasTempAlert=true;
+    }else if(o.component){o.component.forEach(bp=>{
+      const cd=bp.code.coding[0].code;
+      if(!latestBy[cd])latestBy[cd]={display:bp.code.text||bp.code.coding[0].display,val:bp.valueQuantity.value,unit:bp.valueQuantity.unit,dt:o.effectiveDateTime};
+      const j=jVital(cd,bp.valueQuantity.value);
+      if(j.c==='danger')hasBPAlert=true;
+    });}
+  });}
+  const tileOrder=[['2708-6','SpO2'],['8310-5','体温'],['8480-6','収縮期血圧'],['8462-4','拡張期血圧']];
+  tileOrder.forEach(([cd,label])=>{
+    const d=latestBy[cd];
+    if(d){const j=jVital(cd,d.val);vGrid+=`<div class="v-tile ${j.c}"><div class="v-label">${label}</div><div class="v-val">${d.val}<span class="v-unit ml-1">${d.unit}</span></div><div class="v-date">${fmtDt(d.dt)}</div></div>`;}
+  });
+
+  if(hasSpO2Alert)alerts.push('<span class="alert-pill alert-pill-red"><i class="fas fa-lungs mr-1"></i>SpO2低下</span>');
+  if(hasTempAlert)alerts.push('<span class="alert-pill alert-pill-yellow"><i class="fas fa-thermometer-full mr-1"></i>発熱</span>');
+  if(hasBPAlert)alerts.push('<span class="alert-pill alert-pill-yellow"><i class="fas fa-heart mr-1"></i>高血圧</span>');
+  const ap=document.getElementById('alertPills');
+  if(ap)ap.innerHTML=alerts.join('');
+
+  // Latest labs
+  let labRows='';
+  if(labs.entry){labs.entry.forEach(e=>{
+    const o=e.resource;if(!o.valueQuantity)return;
+    const cd=o.code.coding[0].code,nm=o.code.coding[0].display,v=o.valueQuantity.value,u=o.valueQuantity.unit,dt=o.effectiveDateTime;
+    const j=jLab(cd,v);
+    labRows+=`<tr class="${j.c==='danger'?'row-danger':j.c==='warning'?'row-warning':''}"><td>${esc(nm)}</td><td style="font-weight:700;">${v}</td><td>${u}</td><td>${fmtDt(dt)}</td><td>${badge(j)}</td></tr>`;
+  });}
+
+  document.getElementById('tabSum').innerHTML=
+    `<div class="s-card"><div class="s-card-header"><i class="fas fa-diagnoses text-primary mr-1"></i>病名・既往歴</div><div class="s-card-body">${condHtml}</div></div>
+     <div class="s-card"><div class="s-card-header"><i class="fas fa-allergies text-danger mr-1"></i>アレルギー${allergCount?` <span class="badge badge-danger badge-sm ml-1">${allergCount}</span>`:''}</div><div class="s-card-body">${allergHtml}</div></div>
+     <div class="s-card"><div class="s-card-header"><i class="fas fa-heartbeat text-success mr-1"></i>最新バイタルサイン</div><div class="s-card-body"><div class="v-grid">${vGrid||'<span style="color:#bbb;font-size:12px;">データなし</span>'}</div></div></div>
+     <div class="s-card"><div class="s-card-header"><i class="fas fa-flask text-info mr-1"></i>検査結果${labs.total?` <span class="badge badge-info badge-sm ml-1">${labs.total}</span>`:''}</div><div class="s-card-body p0"><table class="s-table"><thead><tr><th>項目</th><th>値</th><th>単位</th><th>日時</th><th>判定</th></tr></thead><tbody>${labRows||'<tr><td colspan="5" style="text-align:center;color:#bbb;">データなし</td></tr>'}</tbody></table></div></div>`;
+}
+
+function renderVitals(vitals){
+  let rows='';
+  if(vitals.entry){vitals.entry.forEach(e=>{
+    const o=e.resource;
+    if(o.valueQuantity){
+      const cd=o.code.coding[0].code,nm=o.code.coding[0].display,v=o.valueQuantity.value,u=o.valueQuantity.unit,dt=o.effectiveDateTime;
+      const j=jVital(cd,v);
+      rows+=`<tr class="${j.c==='danger'?'row-danger':j.c==='warning'?'row-warning':''}"><td>${esc(nm)}</td><td style="font-weight:700;">${v}</td><td>${u}</td><td>${fmtDt(dt)}</td><td>${badge(j)}</td></tr>`;
+    }else if(o.component){o.component.forEach(bp=>{
+      const cd=bp.code.coding[0].code,nm=bp.code.text||bp.code.coding[0].display,v=bp.valueQuantity.value,u=bp.valueQuantity.unit,dt=o.effectiveDateTime;
+      const j=jVital(cd,v);
+      rows+=`<tr class="${j.c==='danger'?'row-danger':j.c==='warning'?'row-warning':''}"><td>${esc(nm)}</td><td style="font-weight:700;">${v}</td><td>${u}</td><td>${fmtDt(dt)}</td><td>${badge(j)}</td></tr>`;
+    });}
+  });}
+  document.getElementById('tabVital').innerHTML=
+    `<div class="s-card"><div class="s-card-header"><i class="fas fa-heartbeat text-success mr-1"></i>バイタルサイン履歴${vitals.total?` <span class="badge badge-success badge-sm ml-1">${vitals.total}</span>`:''}</div><div class="s-card-body p0"><table class="s-table"><thead><tr><th>項目</th><th>値</th><th>単位</th><th>日時</th><th>判定</th></tr></thead><tbody>${rows||'<tr><td colspan="5" style="text-align:center;color:#bbb;">データなし</td></tr>'}</tbody></table></div></div>`;
+}
+
+function renderLabs(labs){
+  let rows='';
+  if(labs.entry){labs.entry.forEach(e=>{
+    const o=e.resource;if(!o.valueQuantity)return;
+    const cd=o.code.coding[0].code,nm=o.code.coding[0].display,v=o.valueQuantity.value,u=o.valueQuantity.unit,dt=o.effectiveDateTime;
+    const j=jLab(cd,v);
+    rows+=`<tr class="${j.c==='danger'?'row-danger':j.c==='warning'?'row-warning':''}"><td>${esc(nm)}</td><td style="font-weight:700;">${v}</td><td>${u}</td><td>${fmtDt(dt)}</td><td>${badge(j)}</td></tr>`;
+  });}
+  document.getElementById('tabLab').innerHTML=
+    `<div class="s-card"><div class="s-card-header"><i class="fas fa-flask text-info mr-1"></i>検査結果履歴</div><div class="s-card-body p0"><table class="s-table"><thead><tr><th>項目</th><th>値</th><th>単位</th><th>日時</th><th>判定</th></tr></thead><tbody>${rows||'<tr><td colspan="5" style="text-align:center;color:#bbb;">データなし</td></tr>'}</tbody></table></div></div>`;
+}
+
+function renderOximeter(){
+  document.getElementById('tabOxi').innerHTML=
+    `<div class="s-card"><div class="s-card-header"><i class="fas fa-lungs text-primary mr-1"></i>パルスオキシメーター入力</div><div class="s-card-body">
+      <div class="oxi-box">
+        <div class="v-label">血中酸素飽和度 (SpO2)</div>
+        <div class="oxi-val" id="oxiVal" style="color:#28a745;">90<span style="font-size:16px;">%</span></div>
+        <input type="range" id="oxiRange" min="80" max="100" value="90" class="oxi-slider">
+        <div class="d-flex justify-content-between" style="font-size:11px;"><span class="text-danger font-weight-bold">80%</span><span class="text-warning">90%</span><span class="text-success font-weight-bold">100%</span></div>
+        <button class="btn btn-primary btn-sm mt-3" id="oxiSave"><i class="fas fa-save mr-1"></i>SpO2を記録する</button>
+        <div class="alert alert-info mt-3 mb-0" style="font-size:11px;"><i class="fas fa-info-circle mr-1"></i>SpO2が90%未満の場合、自動的にHL7 SIU_S12メッセージが生成されます。</div>
+      </div>
+    </div></div>`;
+  const sl=document.getElementById('oxiRange'),vl=document.getElementById('oxiVal');
+  sl.oninput=function(){
+    const v=parseInt(this.value);
+    vl.textContent=v+'%';
+    vl.style.color=v<90?'#dc3545':v<95?'#856404':'#28a745';
+  };
+  document.getElementById('oxiSave').onclick=async function(){
+    if(!currentPatient)return;
+    this.disabled=true;
+    const obs={resourceType:"Observation",meta:{profile:["http://hl7.org/fhir/StructureDefinition/vitalsigns"]},status:"final",
+      category:[{coding:[{system:"http://terminology.hl7.org/CodeSystem/observation-category",code:"vital-signs",display:"Vital Signs"}]}],
+      code:{coding:[{system:"http://loinc.org",code:"2708-6",display:"Oxygen saturation in Arterial blood"},{system:"http://loinc.org",code:"59408-5",display:"Oxygen saturation in Arterial blood by Pulse oximetry"}]},
+      subject:{reference:"Patient/"+currentPatient.id},effectiveDateTime:new Date().toISOString(),
+      valueQuantity:{value:parseInt(sl.value),unit:"%",system:"http://unitsofmeasure.org",code:"%"}};
+    const bundle={resourceType:"Bundle",type:"transaction",entry:[
+      {resource:currentPatient,request:{method:"PUT",url:"Patient/"+currentPatient.id}},
+      {resource:obs,request:{method:"POST",url:"Observation"}}]};
+    const res=await fetch(FHIR_BASE,{method:'POST',headers:HEADERS,body:JSON.stringify(bundle)});
+    if(res.ok){alert('SpO2を記録しました');selectPatient(currentPatient.id);}
+    else{alert('エラーが発生しました');}
+    this.disabled=false;
+  };
+}
+
+function renderJson(patient,cond,allerg,vitals,labs){
+  const all={patient,conditions:cond,allergies:allerg,vitalSigns:vitals,laboratory:labs};
+  document.getElementById('tabJson').innerHTML=
+    `<div class="s-card"><div class="s-card-header"><i class="fas fa-code text-secondary mr-1"></i>FHIR リソース (JSON)</div><div class="s-card-body"><textarea readonly style="width:100%;height:500px;font-family:monospace;font-size:11px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;padding:8px;">${JSON.stringify(all,null,2)}</textarea></div></div>`;
+}
+</script>
+</body>
+</html>
