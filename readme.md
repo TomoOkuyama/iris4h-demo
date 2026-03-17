@@ -297,6 +297,7 @@ HS.FHIRServer.Interop.Service（ビジネスサービス）
 
 ### その他
 
+- [IRIS for Health がサポートする医療標準規格](docs/iris-healthcare-standards.md) — HL7 v2/FHIR/CDA/DICOM/IHE 等の対応一覧
 - [FHIR R4 仕様](https://hl7.org/fhir/R4/)
 - [元テンプレート: IRIS-FHIR-Oximeter-Template](https://github.com/Intersystems-jp/IRIS-FHIR-Oximeter-Template)
 - [iris-fhir-portal（UI アセット元）](https://github.com/diashenrique/iris-fhir-portal)
