@@ -222,17 +222,47 @@ FHIR R4 API を直接呼び出す電子カルテ風 UI（単体 HTML、外部依
 
 ### JsonAdvSQL ストレージ戦略
 
-IRIS for Health 2024.1 で導入された新しいFHIRストレージ戦略。FHIRリソースを POST するだけで、FHIR検索パラメータに基づいた SQL テーブルが自動生成されます。
+IRIS for Health 2024.1 で導入された FHIR ストレージ戦略（`HS.FHIRServer.Storage.JsonAdvSQL.InteractionsStrategy`）。2024.1 以降の新規インストールではデフォルトのストレージ戦略となっている。従来の `HS.FHIRServer.Storage.Json` を置き換える位置づけ。
+
+#### メリット
+
+- **FHIR → SQL の自動マッピング** — FHIRリソースを POST するだけで、検索パラメータに基づいた SQL テーブルが自動生成される。追加設定不要。
+- **マルチモデルアクセス** — 同じデータに FHIR REST API / SQL / ObjectScript / グローバル変数の 4 つの方法で同時アクセス可能。
+- **検索性能の向上** — コンパートメント検索（ワイルドカード・`_type` 対応）、`_include` / `_revinclude`（`:iterate` 対応）、日付/数量の拡張プレフィックス（`sa`, `eb`, `ap`）をフルサポート。
+- **BI/分析ツール連携** — JDBC/ODBC 経由で Tableau、Power BI 等から FHIR データを直接クエリ可能。
+
+#### 従来の Json ストレージとの比較
+
+| 項目 | Json（レガシー） | JsonAdvSQL（推奨） |
+|------|-----------------|-------------------|
+| 導入バージョン | 2024.1 より前 | **2024.1 以降（デフォルト）** |
+| SQL テーブル生成 | なし | **自動生成** |
+| コンパートメント検索 | 制限あり | **フルサポート**（ワイルドカード・`_type`） |
+| `_include` / `_revinclude` | 制限あり | **フルサポート**（`:iterate` 対応） |
+| 検索プレフィックス | 基本のみ | **`sa`, `eb`, `ap` 対応** |
+| パフォーマンス | 標準 | **大幅に改善** |
+| ステータス | レガシー（互換性維持） | **現行推奨** |
+
+#### テーブル構造
 
 ```
-HSFHIR_X0001_S.Patient           ← メインテーブル（1患者=1行）
-HSFHIR_X0001_S_Patient.family    ← 姓の検索用サブテーブル
-HSFHIR_X0001_S_Patient.address   ← 住所の検索用サブテーブル
-HSFHIR_X0001_S.Observation       ← Observationメインテーブル
-HSFHIR_X0001_S_Observation.valueQuantity  ← 測定値のサブテーブル
+HSFHIR_X0001_S.Patient                        ← メインテーブル（1患者=1行）
+HSFHIR_X0001_S_Patient.family                 ← 姓の検索用サブテーブル
+HSFHIR_X0001_S_Patient.address                ← 住所の検索用サブテーブル
+HSFHIR_X0001_S_Patient.identifier             ← 識別子のサブテーブル
+HSFHIR_X0001_S.Observation                    ← Observationメインテーブル
+HSFHIR_X0001_S_Observation.valueQuantity      ← 測定値のサブテーブル
+HSFHIR_X0001_S_Observation.code               ← LOINCコードのサブテーブル
+HSFHIR_X0001_S.Condition                      ← 病名メインテーブル
+HSFHIR_X0001_S_Condition.code                 ← ICD-10コードのサブテーブル
+HSFHIR_X0001_S.AllergyIntolerance             ← アレルギーメインテーブル
+HSFHIR_X0001_S_AllergyIntolerance.code        ← アレルゲンのサブテーブル
 ```
 
-`X0001` はFHIRサーバーインスタンスの番号、`S` は Search テーブルを意味します。
+- `X0001` — FHIR サーバーインスタンスの番号（複数エンドポイント作成時に `X0002`, `X0003`... と増加）
+- `S` — Search テーブル（検索パラメータベースのインデックス）
+- メインテーブルには全リソース共通の検索パラメータ（`_id`, `_lastUpdated`, `subject` 等）が格納
+- サブテーブルにはリソース固有の検索パラメータ（`family`, `address`, `valueQuantity` 等）が展開
 
 ### Interoperability プロダクション構成
 
@@ -248,7 +278,25 @@ HS.FHIRServer.Interop.Service（ビジネスサービス）
 
 ## 参考リンク
 
-- [InterSystems IRIS for Health ドキュメント](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls)
+### InterSystems 公式ドキュメント
+
+- [FHIR Server: An Introduction](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIR_SERVER_INTRO) — FHIR サーバーのアーキテクチャと JsonAdvSQL の概要
+- [Installing a New FHIR Server](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRINS_server_install_new) — FHIR サーバーのインストール手順
+- [Customizing a FHIR Server](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIR_SERVER_CUSTOMIZE_ARCH) — FHIR サーバーのカスタマイズ
+- [FHIR SQL Builder](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIR_fsb) — FHIR SQL Builder の概要
+
+### クラスリファレンス
+
+- [HS.FHIRServer.Storage.JsonAdvSQL.Interactions](https://docs.intersystems.com/irisforhealthlatest/csp/documatic/%25CSP.Documatic.cls?LIBRARY=HSSYS&CLASSNAME=HS.FHIRServer.Storage.JsonAdvSQL.Interactions)
+- [HS.FHIRServer.Storage.JsonAdvSQL.SearchTable](https://docs.intersystems.com/irisforhealthlatest/csp/documatic/%25CSP.Documatic.cls?LIBRARY=HSLIB&CLASSNAME=HS.FHIRServer.Storage.JsonAdvSQL.SearchTable)
+
+### リリースノート
+
+- [New in IRIS for Health 2024.1](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXIHRN_new20241) — JsonAdvSQL の導入
+- [New in IRIS for Health 2024.3](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXIHRN_new20243) — JsonAdvSQL の検索パフォーマンス改善
+
+### その他
+
 - [FHIR R4 仕様](https://hl7.org/fhir/R4/)
 - [元テンプレート: IRIS-FHIR-Oximeter-Template](https://github.com/Intersystems-jp/IRIS-FHIR-Oximeter-Template)
 - [iris-fhir-portal（UI アセット元）](https://github.com/diashenrique/iris-fhir-portal)
