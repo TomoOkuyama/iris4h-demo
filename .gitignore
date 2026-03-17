@@ -22,3 +22,6 @@ Out/_*
 
 # Docs (auto-generated)
 docs/superpowers/
+
+# Confidential
+docs/confidential-scenario.md
