@@ -7,31 +7,44 @@
 // ============================================================
 
 // --- 方法1: ObjectScript から SQL を実行 ---
+// FHIRリソースの検索パラメータがSQLカラムにマッピングされている
 Set stmt = ##class(%SQL.Statement).%New()
 Do stmt.%Prepare("SELECT Key, subject_Reference, date_StartRaw FROM HSFHIR_X0001_S.Observation")
 Set rs = stmt.%Execute()
 While rs.%Next() { Write rs.Key, " | ", rs.%Get("subject_Reference"), " | ", rs.%Get("date_StartRaw"), ! }
 
 // --- 方法2: FHIR Server API でリソースをオブジェクトとして取得 ---
-// （FHIRリソースのJSON全体にアクセスできる）
+// まずSQLで最初のObservation IDを取得し、FHIR APIでJSON全体にアクセスする
+Set stmt = ##class(%SQL.Statement).%New()
+Do stmt.%Prepare("SELECT TOP 1 Key FROM HSFHIR_X0001_S.Observation")
+Set rs = stmt.%Execute()
+If rs.%Next() { Set obsKey = rs.Key } Else { Write "Observationが見つかりません",! }
+Set obsId = $PIECE(obsKey, "/", 2)
+Write "--- FHIR API で Observation/", obsId, " を取得 ---", !
 Set appKey = "/csp/healthshare/fhirserver/fhir/r4"
 Set strategy = ##class(HS.FHIRServer.API.InteractionsStrategy).GetStrategyForEndpoint(appKey)
 Set interactions = strategy.NewInteractionsInstance()
-Set json = interactions.Read("Observation", "4")
+Set json = interactions.Read("Observation", obsId)
 Write "resourceType: ", json.resourceType, !
 Write "O2Sat: ", json.valueQuantity.value, " ", json.valueQuantity.unit, !
 Write "患者参照: ", json.subject.reference, !
 Write "測定日時: ", json.effectiveDateTime, !
 
-// --- 方法3: 同じデータをSQLでも確認 ---
+// --- 方法3: 同じデータをSQLでも確認（方法1と方法2で同じリソースにアクセスしていることを証明）---
 Set stmt = ##class(%SQL.Statement).%New()
-Do stmt.%Prepare("SELECT Key, subject_Reference FROM HSFHIR_X0001_S.Observation WHERE Key = 'Observation/4'")
-Set rs = stmt.%Execute()
+Do stmt.%Prepare("SELECT Key, subject_Reference FROM HSFHIR_X0001_S.Observation WHERE Key = ?")
+Set rs = stmt.%Execute(obsKey)
 If rs.%Next() { Write "SQL結果: ", rs.Key, " → ", rs.%Get("subject_Reference"), ! }
 
-// --- 方法4: グローバル変数（データの実体）を直接確認 ---
-// FHIRリソースは最終的にグローバル変数に格納されている
-ZWrite ^HSFHIR.X0001.S.ObservationD(1)
+// --- 方法4: グローバル変数（データの物理的な実体）を直接確認 ---
+// JsonAdvSQL ではグローバル名はハッシュ化されるため、クラス定義から取得する
+Set dataLoc = ##class(%Dictionary.CompiledStorage).%OpenId("HSFHIR.X0001.S.Rsrc||Default").DataLocation
+Write "グローバル変数名: ", dataLoc, !
+// 最初のObservationの内部IDでデータを表示
+Set stmt2 = ##class(%SQL.Statement).%New()
+Do stmt2.%Prepare("SELECT TOP 1 ID1 FROM HSFHIR_X0001_S.Rsrc WHERE Key = ?")
+Set rs2 = stmt2.%Execute(obsKey)
+If rs2.%Next() { Set internalId = rs2.%Get("ID1") Write "内部ID: ", internalId, ! ZWrite @(dataLoc_"("_internalId_")") }
 
 // ============================================================
 // ポイント:
