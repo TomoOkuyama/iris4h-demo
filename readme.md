@@ -61,7 +61,7 @@ bash demo/01_load_patients.sh    # デモデータ投入（起動完了後）
 
 アクセスURLは通常版と同じ（`http://localhost:11202/...`）。
 
-> **Community版の制限:** Web Gateway を含まず、IRIS の内蔵 Web Server で直接応答する。また、Community Edition には同時接続数やデータベースサイズ等の制限がある。詳細は [InterSystems Community Edition の制限事項](https://www.intersystems.com/jp/products/intersystems-iris/community-edition/) を参照。
+> **Community版の制限:** Web Gateway を含まず、IRIS の内蔵 Web Server で直接応答する。また、Community Edition には同時接続数やデータベースサイズ等の制限がある。詳細は [コミュニティ版と製品版の違いについて](https://jp.community.intersystems.com/post/intersystems-iris%EF%BC%8Fintersystems-iris-health-%E3%82%B3%E3%83%9F%E3%83%A5%E3%83%8B%E3%83%86%E3%82%A3%E7%89%88%E3%81%A8%E8%A3%BD%E5%93%81%E7%89%88%E3%81%AE%E9%81%95%E3%81%84%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6) を参照。
 
 ---
 
@@ -97,11 +97,19 @@ docker exec -it iris4h iris session IRIS -U FHIRSERVER
 
 ### シナリオ3: パルスオキシメーター → HL7 自動変換
 
-SpO2 < 90% のデータが送信されると、Interoperability プロダクションが自動で HL7 v2.5 SIU_S12 メッセージを生成する。BPL（ビジネスロジック）も DTL（データ変換）も GUI で定義されており、コードを書く必要がない。
+**操作手順:**
 
-```bash
-bash demo/04_oximeter_test.sh
-```
+1. 電子カルテ UI で患者を選択
+2. 「SpO2入力」タブを開く
+3. スライダーで血中酸素飽和度（SpO2）を 90% 未満に設定
+4. 「SpO2を記録する」ボタンをクリック
+5. `./Out/` に HL7 ファイルが出力される
+
+> スクリプトでの実行: `bash demo/04_oximeter_test.sh` でも同じ操作を curl で実行できる。
+
+**裏側の仕組み:**
+
+ボタンをクリックすると、電子カルテ UI が FHIR Bundle（Patient + Observation）を IRIS に POST する。IRIS 側では常時稼働している Interoperability プロダクションがこのリクエストを受け取り、BPL（ビジネスプロセス）が SpO2 < 90% を検知すると、DTL（データ変換）で HL7 v2.5 SIU_S12 メッセージに変換してファイル出力する。BPL も DTL も Management Portal の GUI で定義されており、コードを書く必要がない。
 
 **処理フロー:**
 ```
