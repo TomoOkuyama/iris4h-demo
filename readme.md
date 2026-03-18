@@ -127,7 +127,7 @@ BPL のコンテキスト（SpO2値・患者名・患者ID）から HL7 v2.5 SIU
 
 ### 電子カルテ UI
 
-FHIR R4 API を直接呼び出す電子カルテ風 UI。単体 HTML で動作し、外部依存は CDN のみ。
+FHIR R4 API を直接呼び出す電子カルテ風 UI。単体 HTML で動作し、ライブラリ（Bootstrap / jQuery / Font Awesome）も同梱しているため、インターネット接続不要で動作する。
 
 ![電子カルテ UI](docs/emr-screenshot.png)
 

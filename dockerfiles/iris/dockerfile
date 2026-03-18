@@ -14,4 +14,5 @@ RUN iris start IRIS \
     && iris session IRIS < /tmp/iris.script \
     && iris stop IRIS quietly \
     && mkdir -p ${ISC_PACKAGE_INSTALLDIR}/csp/emr \
-    && cp /opt/app/src/emr/index.html ${ISC_PACKAGE_INSTALLDIR}/csp/emr/index.html
+    && cp /opt/app/src/emr/index.html ${ISC_PACKAGE_INSTALLDIR}/csp/emr/index.html \
+    && cp -r /opt/app/src/emr/vendor ${ISC_PACKAGE_INSTALLDIR}/csp/emr/vendor
