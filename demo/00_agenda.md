@@ -83,6 +83,7 @@ IRISターミナル接続:
 **実行スクリプト:**
 ```bash
 bash demo/04_oximeter_test.sh       # SpO2=85% で HL7 出力をトリガー
+bash demo/view_hl7.sh               # 出力された HL7 メッセージを UTF-8 で表示
 ```
 
 **処理フロー:**
@@ -109,7 +110,7 @@ FHIR Bundle POST
 | JsonAdvSQL | FHIRリソース → SQLテーブル自動マッピング（メイン+サブテーブル） |
 | Interoperability | FHIR → BPL → DTL → HL7 のリアルタイム変換 |
 | ビジュアルトレース | メッセージ処理フローの可視化 |
-| 電子カルテ UI | FHIR API ベースのWebアプリ（異常値ハイライト・アラートバッジ） |
+| 電子カルテ UI | FHIR API ベースのWebアプリ（異常値ハイライト・アラートバッジ・オフライン対応） |
 
 ---
 
