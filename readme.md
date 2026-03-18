@@ -180,6 +180,8 @@ Interoperability のビジネスプロセス（BPL）。FHIR リクエストを�
 
 FHIR R4 API を直接呼び出す電子カルテ風 UI（単体 HTML、外部依存は CDN のみ）。
 
+![電子カルテ UI](docs/emr-screenshot.png)
+
 **機能:**
 - 患者一覧（20名、検索フィルタ付き）
 - 患者選択 → サマリ表示（病名・アレルギー・バイタル・検査結果）
