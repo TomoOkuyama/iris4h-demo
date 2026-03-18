@@ -249,6 +249,11 @@ FHIR Terminology Service が組み込み済み:
 
 CodeSystem、ValueSet、ConceptMap を FHIR リソースとして登録するだけで利用可能。
 
+**書かなくて済んだコード:**
+- コード体系ごとのマスターデータ管理ツール
+- 検索・バリデーション・変換の API 実装
+- マスターデータの定期更新パイプライン
+
 ---
 
 ## 7. セキュリティ・監査 — 忘れがちだが必須なもの
@@ -275,9 +280,59 @@ CodeSystem、ValueSet、ConceptMap を FHIR リソースとして登録するだ
   ✓ ロールベースアクセス制御
 ```
 
+**書かなくて済んだコード:**
+- OAuth 2.0 認可サーバーの構築・運用
+- 監査ログの記録・保存・検索基盤
+- 暗号化レイヤーの実装
+
 ---
 
-## 8. まとめ — 開発者が集中すべきこと
+## 8. DB 内での Python 実行 — データを動かさず処理する
+
+### 自分で作る場合
+
+```
+DB のデータを Python で処理するには:
+
+  □ DB からデータをエクスポート（SQL クエリ → CSV/JSON）
+  □ アプリサーバーにデータ転送
+  □ Python で処理（ML 推論、Embedding 生成、統計分析...）
+  □ 結果を DB に書き戻し
+  □ この一連のパイプラインの保守・エラーハンドリング
+```
+
+→ データ量が増えるほど転送コストが膨らみ、リアルタイム処理が難しくなる。
+
+### IRIS for Health（Embedded Python）の場合
+
+```python
+# IRIS の中で Python がそのまま動く — データ移動ゼロ
+import iris
+
+# DB のデータに直接アクセスして処理
+rs = iris.sql.exec("SELECT * FROM HSFHIR_X0001_S.Patient")
+for row in rs:
+    # scikit-learn, transformers, pandas 等をそのまま使える
+    # データは DB の外に出ていない
+    pass
+```
+
+**Embedded Python** は IRIS のプロセス内で Python を直接実行する仕組み。
+データを外部に取り出す必要がないため、大量の医療データを扱う場面で大きな差が出る。
+
+**活用例:**
+- 患者データから ML モデルでリスクスコアを算出
+- 臨床テキストから Embedding を生成し、類似症例を検索
+- pandas でバイタルデータを統計処理してダッシュボードに反映
+
+**書かなくて済んだコード:**
+- データ転送のパイプライン（エクスポート → 転送 → インポート）
+- DB 接続・認証の管理（IRIS の中にいるので不要）
+- 処理結果の書き戻しロジック
+
+---
+
+## 9. まとめ — 開発者が集中すべきこと
 
 ### IRIS に任せるもの（プラットフォームが吸収）
 
@@ -287,8 +342,10 @@ CodeSystem、ValueSet、ConceptMap を FHIR リソースとして登録するだ
 | SQL アクセス | ETL パイプライン構築 | **POST するだけで自動** |
 | データ変換 | v2パーサー + マッピング実装 | **GUI（DTL）で定義** |
 | メッセージング | Kafka/RabbitMQ + アダプタ | **Production に組み込み** |
+| マルチモデル | FHIR + RDB + 検索エンジン + ETL | **1つのエンジンで5つのアクセス方法** |
 | 用語サービス | マスター管理 + API 実装 | **Terminology Service 内蔵** |
 | 監査・認証 | OAuth サーバー + 監査ログ | **組み込み済み** |
+| DB 内 Python 実行 | データ転送 + 外部処理 | **Embedded Python でデータ移動ゼロ** |
 
 ### 開発者が集中すべきこと（ビジネスロジック）
 
@@ -318,3 +375,4 @@ CodeSystem、ValueSet、ConceptMap を FHIR リソースとして登録するだ
 | ビジュアルトレース | Management Portal > Interoperability > Message Viewer |
 | 電子カルテ UI（FHIR API ベース） | `http://localhost:11202/csp/emr/index.html` |
 | 実務 SQL クエリ（22本） | `demo/05_practical_sql_queries.sql` |
+| Embedded Python | `docker exec -it iris4h iris session IRIS -U FHIRSERVER` から `##class(%SYS.Python).Shell()` |
