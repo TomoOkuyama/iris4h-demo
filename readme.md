@@ -261,10 +261,6 @@ iris4h-demo/
 │   ├── 04_oximeter_test.sh      # パルスオキシメーター デモスクリプト
 │   └── 05_practical_sql_queries.sql # 実務 SQL クエリ集（22本）
 │
-├── SampleResource/              # サンプル FHIR リソース（JSON）
-│   ├── test_Patient.json
-│   └── test_Bundle_Patient_Observation.json
-│
 └── Out/                         # HL7 メッセージ出力先（実行時に生成）
     └── .gitkeep
 ```
