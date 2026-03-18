@@ -281,10 +281,10 @@ HS.FHIRServer.Interop.Service（ビジネスサービス）
 
 ### InterSystems 公式ドキュメント
 
-- [FHIR Server: An Introduction](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIR_SERVER_INTRO) — FHIR サーバーのアーキテクチャと JsonAdvSQL の概要
+- [FHIR Server: An Introduction](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIROVW_server_intro) — FHIR サーバーのアーキテクチャと JsonAdvSQL の概要
 - [Installing a New FHIR Server](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRINS_server_install_new) — FHIR サーバーのインストール手順
-- [Customizing a FHIR Server](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIR_SERVER_CUSTOMIZE_ARCH) — FHIR サーバーのカスタマイズ
-- [FHIR SQL Builder](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIR_fsb) — FHIR SQL Builder の概要
+- [Customizing a FHIR Server](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRADM_server_customize_arch) — FHIR サーバーのカスタマイズ
+- [FHIR SQL Builder](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRFSB_intro) — FHIR SQL Builder の概要
 
 ### クラスリファレンス
 
