@@ -20,6 +20,7 @@ Docker Compose で起動するだけで、FHIR リポジトリ・電子カルテ
 
 - Docker Desktop がインストールされていること
 - `dockerfiles/iris/iris.key` に IRIS ライセンスキーファイルを配置
+  - IRIS for Health のライセンスが必要です。評価ライセンスの発行は [InterSystems](https://www.intersystems.com/jp/) までお問い合わせください。
 
 ### 2. ビルド・起動
 
