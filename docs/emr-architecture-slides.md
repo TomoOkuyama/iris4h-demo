@@ -46,8 +46,8 @@ IRIS for Health
 | レイヤー | 技術 | 備考 |
 |---------|------|------|
 | フロントエンド | HTML + CSS + JavaScript | 単体ファイル、フレームワーク不使用 |
-| CSS | Bootstrap 4.6（CDN） | レスポンシブ対応 |
-| アイコン | Font Awesome 5（CDN） | 医療系アイコン |
+| CSS | Bootstrap 4.6（ローカル同梱） | レスポンシブ対応 |
+| アイコン | Font Awesome 5（ローカル同梱） | 医療系アイコン |
 | データ取得 | ブラウザ標準 fetch API | jqFhir 等のライブラリ不使用 |
 | 認証 | Basic認証（Authorization ヘッダー） | デモ用。本番は OAuth 2.0 / SMART on FHIR |
 | バックエンド | なし（IRIS の FHIR API が直接応答） | カスタム API サーバー不要 |
