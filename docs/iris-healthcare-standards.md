@@ -152,12 +152,12 @@ Production（統合エンジン）では、医療標準以外にも以下をサ�
 ## 参考リンク
 
 - [IRIS for Health 製品概要](https://www.intersystems.com/products/intersystems-iris-for-health/)
-- [FHIR サポート概要](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIR_fhir)
+- [FHIR サポート概要](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIROVW_fhir)
 - [HL7 v2 ルーティング](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=EHL72)
 - [CDA / C-CDA 変換](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXCDA_ch_cda)
 - [DICOM 概要](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=EDICOM_intro)
 - [IHE プロファイル（PIX/PDQ）](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXIHE_IHE_scenarios_query_EMPI)
 - [IHE プロファイル（XDS.b）](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXIHE_IHE_SCENARIOS_XDSB_QUERY)
-- [FHIR サーバーセキュリティ（OAuth 2.0）](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIR_SERVER_AUTH)
+- [FHIR サーバーセキュリティ（OAuth 2.0）](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRADM_server_auth)
 - [SDA-FHIR 変換](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRPROD_transforms)
 - [JP Core プロファイル検証方法](https://jp.community.intersystems.com/post/jp-core-%E3%81%AA%E3%81%A9%E3%81%AE%E3%82%AB%E3%82%B9%E3%82%BF%E3%83%A0%E3%83%97%E3%83%AD%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%92-iris-%E3%81%AE-fhir-%E3%83%AA%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E3%81%A7%E6%A4%9C%E8%A8%BC%E3%81%99%E3%82%8B%E6%96%B9%E6%B3%95)
