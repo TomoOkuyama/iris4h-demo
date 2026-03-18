@@ -16,27 +16,25 @@ Docker Compose で起動するだけで、FHIR リポジトリ・電子カルテ
 
 ---
 
-## 構成
+## セットアップ
+
+**前提条件:** Docker Desktop がインストールされていること
+
+### 通常版（本番用 / 評価用）
+
+IRIS for Health の製品版イメージを使用する。全機能が利用可能。
+
+**ライセンスキー:** `dockerfiles/iris/iris.key` に配置が必要。評価ライセンスの発行は [InterSystems](https://www.intersystems.com/jp/) までお問い合わせください。
+
+```bash
+docker compose up -d --build
+bash demo/01_load_patients.sh    # デモデータ投入（起動完了後）
+```
 
 | コンテナ | ホスト名 | ポート | 説明 |
 |---------|---------|--------|------|
-| iris4h | iris | 11201:1972 (SuperServer) | IRIS for Health 2025.3 |
-| webgw4h | webgw | 11202:80, 11203:443 | Web Gateway 2025.3 |
-
-## セットアップ
-
-**前提条件:**
-- Docker Desktop
-- `dockerfiles/iris/iris.key` に IRIS ライセンスキーを配置（評価ライセンスの発行は [InterSystems](https://www.intersystems.com/jp/) までお問い合わせください）
-- 必要に応じて `docker-compose.yml` のポートフォワード設定（`11201`〜`11203`）を環境に合わせて変更
-
-```bash
-# ビルド・起動
-docker compose up -d --build
-
-# デモデータ投入（起動完了後）
-bash demo/01_load_patients.sh
-```
+| iris4h | iris | 11201:1972 (SuperServer), 11204:52773 (Web Server) | IRIS for Health 2025.3 |
+| webgw4h | webgw | 11202:80 (HTTP), 11203:443 (HTTPS) | Web Gateway 2025.3 |
 
 | 画面 | URL |
 |------|-----|
@@ -45,6 +43,25 @@ bash demo/01_load_patients.sh
 | Management Portal | http://localhost:11202/csp/sys/%25CSP.Portal.Home.zen |
 
 認証情報: `_SYSTEM` / `SYS`
+
+> 必要に応じて `docker-compose.yml` のポートフォワード設定を環境に合わせて変更してください。
+
+### Community版（ライセンスキー不要）
+
+ライセンスキーなしで手軽に動作を確認したい場合は、Community Edition を利用できる。アクセスURLやデモスクリプトは通常版と共通。
+
+```bash
+docker compose -f docker-compose.community.yml up -d --build
+bash demo/01_load_patients.sh    # デモデータ投入（起動完了後）
+```
+
+| コンテナ | ホスト名 | ポート | 説明 |
+|---------|---------|--------|------|
+| iris4h-community | iris | 11201:1972 (SuperServer), 11202:52773 (Web Server) | IRIS for Health Community 2025.3 |
+
+アクセスURLは通常版と同じ（`http://localhost:11202/...`）。
+
+> **Community版の制限:** Web Gateway を含まず、IRIS の内蔵 Web Server で直接応答する。また、Community Edition には同時接続数やデータベースサイズ等の制限がある。詳細は [InterSystems Community Edition の制限事項](https://www.intersystems.com/jp/products/intersystems-iris/community-edition/) を参照。
 
 ---
 
@@ -230,7 +247,8 @@ HS.FHIRServer.Interop.Service（ビジネスサービス）
 
 ```
 iris4h-demo/
-├── docker-compose.yml           # Docker Compose 定義
+├── docker-compose.yml           # Docker Compose 定義（製品版）
+├── docker-compose.community.yml # Docker Compose 定義（Community版）
 ├── readme.md                    # このファイル
 │
 ├── dockerfiles/
@@ -259,7 +277,8 @@ iris4h-demo/
 │   ├── 02_sql_queries.sql       # 基本 SQL クエリ集
 │   ├── 03_objectscript_queries.txt  # ObjectScript クエリ集
 │   ├── 04_oximeter_test.sh      # パルスオキシメーター デモスクリプト
-│   └── 05_practical_sql_queries.sql # 実務 SQL クエリ集（22本）
+│   ├── 05_practical_sql_queries.sql # 実務 SQL クエリ集（22本）
+│   └── view_hl7.sh              # HL7 メッセージ UTF-8 表示ビューア
 │
 └── Out/                         # HL7 メッセージ出力先（実行時に生成）
     └── .gitkeep

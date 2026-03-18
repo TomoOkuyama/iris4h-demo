@@ -1,4 +1,5 @@
-FROM containers.intersystems.com/intersystems/irishealth:2025.3
+ARG IMAGE=containers.intersystems.com/intersystems/irishealth:2025.3
+FROM ${IMAGE}
 
 USER root
 WORKDIR /opt/app
@@ -8,7 +9,7 @@ USER ${ISC_PACKAGE_MGRUSER}
 COPY --chown=${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_IRISGROUP} dockerfiles/iris/Setup.cls .
 COPY --chown=${ISC_PACKAGE_MGRUSER}:${ISC_PACKAGE_IRISGROUP} src src
 COPY dockerfiles/iris/iris.script /tmp/iris.script
-COPY dockerfiles/iris/iris.key ${ISC_PACKAGE_INSTALLDIR}/mgr/iris.key
+COPY dockerfiles/iris/iris.ke[y] ${ISC_PACKAGE_INSTALLDIR}/mgr/
 
 RUN iris start IRIS \
     && iris session IRIS < /tmp/iris.script \

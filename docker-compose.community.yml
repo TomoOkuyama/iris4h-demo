@@ -1,0 +1,27 @@
+name: iris4h-community
+
+services:
+
+  iris:
+    build:
+      context: .
+      dockerfile: ./dockerfiles/iris/dockerfile
+      args:
+        IMAGE: containers.intersystems.com/intersystems/irishealth-community:2025.3
+    container_name: iris4h-community
+    hostname: iris
+    ports:
+      - "11201:1972"
+      - "11202:52773"
+    init: true
+    volumes:
+      - ./dockerfiles/iris/opt/iris:/opt/iris
+      - ./Out:/ISC/Out
+    tty: true
+    environment:
+      - TZ=JST-9
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
