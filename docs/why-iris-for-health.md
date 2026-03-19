@@ -301,7 +301,7 @@ import iris
 
 # DB のデータに直接アクセスして処理
 # ※ テーブル名は FHIR SQL Builder で定義したプロジェクションを使用
-rs = iris.sql.exec("SELECT * FROM MyFHIRProjection.Patient")
+rs = iris.sql.exec("SELECT * FROM FHIRDemo.Patient")
 for row in rs:
     # scikit-learn, transformers, pandas 等をそのまま使える
     # データは DB の外に出ていない

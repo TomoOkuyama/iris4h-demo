@@ -176,7 +176,7 @@ SELECT
     PatientRef,
     ICD10Code,
     DiagnosisText
-FROM MyProjection.Condition
+FROM FHIRDemo.Condition
 WHERE ConditionId NOT IN (SELECT ConditionRef FROM CaseRecord)
 ```
 
@@ -287,9 +287,9 @@ FROM (
     FROM CaseRecord
     ORDER BY similarity DESC
 ) cr
-JOIN MyProjection.Patient p
+JOIN FHIRDemo.Patient p
     ON p.PatientId = cr.PatientRef
-LEFT JOIN MyProjection.Observation obs
+LEFT JOIN FHIRDemo.Observation obs
     ON obs.PatientRef = cr.PatientRef
 ```
 
