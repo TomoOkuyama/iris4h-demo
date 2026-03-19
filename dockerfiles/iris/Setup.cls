@@ -33,7 +33,7 @@ ClassMethod setUpFHIR(ns As %String = "fhirserver") As %Status
         set tStrategyClass = "HS.FHIRServer.Storage.JsonAdvSQL.InteractionsStrategy"
         set tMetadataPackages = $lb("hl7.fhir.r4.core@4.0.1")
 
-        // FHIRサーバ機能を作成したネームスペースにインストール（JsonAdvSQL: SQLテーブル自動生成）
+        // FHIRサーバ機能を作成したネームスペースにインストール（JsonAdvSQL ストレージ戦略）
         do ##class(HS.FHIRServer.Installer).InstallInstance(tFHIRApp, tStrategyClass, tMetadataPackages,"",0)
 
         // FHIRアプリケーション用の構成

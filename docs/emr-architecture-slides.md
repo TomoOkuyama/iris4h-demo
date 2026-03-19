@@ -33,7 +33,7 @@ Web Gateway (port 11202)
   ▼
 IRIS for Health
   ├── FHIR R4 エンドポイント（REST API）
-  ├── JsonAdvSQL ストレージ（JSON + SQL 自動生成）
+  ├── JsonAdvSQL ストレージ（高性能 FHIR リポジトリ）
   └── Interoperability Production（BPL → DTL → HL7）
 ```
 

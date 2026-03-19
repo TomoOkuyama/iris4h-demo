@@ -30,7 +30,8 @@ InterSystems IRIS for Health が対応する医療標準規格の一覧です。
   - Bulk FHIR（インポート/エクスポート）
   - FHIR Terminology Service（CodeSystem, ValueSet, ConceptMap）
   - FHIRパッケージの追加による実装ガイド対応
-  - JsonAdvSQL による SQL テーブル自動生成（2024.1〜）
+  - JsonAdvSQL ストレージ戦略による検索性能・標準準拠性の向上（2024.1〜）
+  - FHIR SQL Builder による SQL 分析用プロジェクション定義
 
 ### HL7 v3 / CDA / C-CDA
 

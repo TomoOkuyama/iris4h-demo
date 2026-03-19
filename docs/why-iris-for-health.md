@@ -47,7 +47,7 @@ Do ##class(HS.FHIRServer.Installer).InstallInstance("/fhir/r4",
 **3行で得られるもの:**
 - 全150+リソースタイプ対応の FHIR R4 サーバー
 - 全検索パラメータ対応（チェイン検索、`_include`/`_revinclude` 含む）
-- JSON + SQL テーブルの自動生成（JsonAdvSQL）
+- FHIR SQL Builder で SQL 分析用テーブルを定義可能
 - CapabilityStatement の自動生成
 - バージョニング、Conditional CRUD 対応済み
 - Bulk FHIR（インポート/エクスポート）対応
