@@ -51,7 +51,7 @@ IRIS for Health
 | データ取得 | ブラウザ標準 fetch API | jqFhir 等のライブラリ不使用 |
 | 認証 | Basic認証（Authorization ヘッダー） | デモ用。本番は OAuth 2.0 / SMART on FHIR |
 | バックエンド | なし（IRIS の FHIR API が直接応答） | カスタム API サーバー不要 |
-| データベース | IRIS for Health（JsonAdvSQL） | FHIR JSON + SQL テーブル自動生成 |
+| データベース | IRIS for Health（JsonAdvSQL） | FHIR リポジトリ + FHIR SQL Builder で SQL 分析 |
 
 ---
 
@@ -235,7 +235,7 @@ Solution.FHIRBPL（ビジネスプロセス）
 | 通常必要なもの | IRIS での対応 |
 |--------------|-------------|
 | API サーバー（Express等） | FHIR エンドポイント（組み込み） |
-| DB スキーマ定義 | JsonAdvSQL（自動生成） |
+| DB スキーマ定義 | FHIR SQL Builder（GUI定義） |
 | ORM / データアクセス層 | FHIR REST API |
 | 認証・認可 | OAuth 2.0 / Basic認証（組み込み） |
 | メッセージキュー | Production（組み込み） |
@@ -269,7 +269,7 @@ Solution.FHIRBPL（ビジネスプロセス）
 2. **1つの HTML ファイルで完結** — フレームワーク依存なし
 3. **データは全て FHIR 標準** — ベンダーロックインなし
 4. **異常値検出 → HL7 連携が自動** — Interoperability Production
-5. **同じデータに SQL でもアクセス可能** — JsonAdvSQL（別途 Vector Search も利用可能）
+5. **同じデータに SQL でもアクセス可能** — FHIR SQL Builder でプロジェクション定義（別途 Vector Search も利用可能）
 
 ### 次のステップ
 

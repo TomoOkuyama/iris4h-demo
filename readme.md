@@ -9,9 +9,10 @@ Docker Compose で起動するだけで、FHIR リポジトリ・電子カルテ
 
 ## このデモでできること
 
-- **FHIR R4 リポジトリ** — POST するだけで SQL テーブルが自動生成される JsonAdvSQL を体験
+- **FHIR R4 リポジトリ** — JsonAdvSQL ストレージ戦略による高性能な FHIR サーバーを体験
 - **電子カルテ UI** — FHIR API だけで動く患者サマリ画面（バイタル・病名・アレルギー・検査結果）
 - **Interoperability 連携** — SpO2 低下を検知して HL7 v2.5 メッセージを自動生成するフロー
+- **FHIR SQL Builder** — FHIR データを SQL で分析するための公式ツール（Management Portal から利用可能）
 - **マルチモデルアクセス** — 同じデータに FHIR REST / SQL / ObjectScript / グローバル変数でアクセス
 
 ---
@@ -67,23 +68,19 @@ bash demo/01_load_patients.sh    # デモデータ投入（起動完了後）
 
 ## デモシナリオ
 
-### シナリオ1: FHIR R4 → SQL 自動マッピング
+### シナリオ1: FHIR R4 リポジトリ & FHIR SQL Builder
 
-FHIR リソースを POST するだけで、ETL なしに SQL テーブルが自動生成される。これが JsonAdvSQL（2024.1〜）の核心機能。
+FHIR リソースを POST するだけで FHIR R4 リポジトリにデータが格納される。JsonAdvSQL ストレージ戦略（2024.1〜）により、FHIR REST API の検索性能・標準準拠性・スケーラビリティが大幅に向上している。
 
-```sql
--- 患者一覧（POST しただけで SQL で引ける）
-SELECT Key, BirthDate, Gender FROM HSFHIR_X0001_S.Patient
+FHIR データを SQL で分析したい場合は、**FHIR SQL Builder** を利用する。Management Portal から GUI でプロジェクション（SQL ビュー）を定義し、必要な FHIR リソースの要素を選択して SQL テーブルを生成できる。
 
--- SpO2 < 90% の患者を抽出（臨床アラート相当）
-SELECT o.subject_Reference, vq.value_ValueLowRaw AS "SpO2(%)"
-FROM HSFHIR_X0001_S_Observation.valueQuantity vq
-JOIN HSFHIR_X0001_S.Observation o ON o.Key = vq.Key
-JOIN HSFHIR_X0001_S_Observation.code oc ON oc.Key = o.Key
-WHERE oc.value_Value = '2708-6' AND CAST(vq.value_ValueLowRaw AS NUMERIC) < 90
+```
+FHIR SQL Builder へのアクセス:
+  Management Portal > Health > FHIR SQL Builder
+  http://localhost:11202/csp/healthshare/fhirserver/fhir/portal/index.html
 ```
 
-実務的な SQL クエリ集（22本・8業務シチュエーション対応）: `demo/05_practical_sql_queries.sql`
+参考: [FHIR SQL Builder ドキュメント](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRFSB_intro)
 
 ### シナリオ2: マルチモデルアクセス
 
@@ -178,20 +175,9 @@ FHIR R4 API を直接呼び出す電子カルテ風 UI。単体 HTML で動作�
 | Condition | 23件 | 糖尿病・高血圧・CKD・心不全・COPD・喘息・肺炎・睡眠時無呼吸 |
 | AllergyIntolerance | 10件 | 薬剤（ペニシリン等）・食物（そば等）・環境（花粉等） |
 
-### SQL クエリ集
+### FHIR SQL Builder
 
-`demo/05_practical_sql_queries.sql` — 8つの業務シチュエーションに対応した22本のクエリ:
-
-| # | シチュエーション | 例 |
-|---|-----------------|-----|
-| 1 | 外来受付 — 患者検索 | 姓で検索、診察券番号で特定、住所で抽出 |
-| 2 | 診察室 — 患者の全体像把握 | 病名一覧、アレルギー、バイタル履歴、検査結果 |
-| 3 | 病棟 — 異常値アラート | SpO2 < 90% 抽出、発熱患者、感染症疑い |
-| 4 | 処方チェック — アレルギー確認 | ペニシリン系アレルギー、薬剤/食物アレルギー一覧 |
-| 5 | 慢性疾患管理 — 糖尿病外来 | HbA1c一覧、治療強化対象、糖尿病性腎症の早期発見 |
-| 6 | 腎臓内科 — CKD管理 | CKDステージ一覧、Cr/Hbの相関（腎性貧血の評価） |
-| 7 | 経営・レポート — 統計 | 疾患別患者数、検査実施件数、併存疾患数 |
-| 8 | 多職種連携 — 横断検索 | 重症患者の病名+アレルギー横断ビュー |
+FHIR データを SQL で分析する場合は、[FHIR SQL Builder](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRFSB_intro)（2023.1 以降正式サポート）の利用が推奨される。Management Portal の GUI から、分析対象の FHIR リソースと要素を選択してプロジェクション（SQL ビュー）を定義できる。JDBC/ODBC 経由で Tableau、Power BI 等の BI ツールからも接続可能。
 
 ---
 
@@ -199,45 +185,25 @@ FHIR R4 API を直接呼び出す電子カルテ風 UI。単体 HTML で動作�
 
 ### JsonAdvSQL ストレージ戦略
 
-IRIS for Health 2024.1 で導入された FHIR ストレージ戦略。2024.1 以降のデフォルトであり、従来の `HS.FHIRServer.Storage.Json` を置き換える。
+IRIS for Health 2024.1 で導入された FHIR サーバーのデフォルトストレージ戦略。従来の `HS.FHIRServer.Storage.Json` と比べ、FHIR REST API の検索性能・標準準拠性・スケーラビリティが大幅に向上している。
 
 **特徴:**
-- **FHIR → SQL 自動マッピング** — POST するだけで検索パラメータに基づく SQL テーブルが自動生成される
+- **検索性能の向上** — コンパートメント検索、`_include`/`_revinclude`（`:iterate`対応）、拡張プレフィックス（`sa`, `eb`, `ap`）をフルサポート
 - **マルチモデルアクセス** — FHIR REST / SQL / ObjectScript / グローバル変数の 4 方式で同時アクセス
-- **検索性能** — コンパートメント検索、`_include`/`_revinclude`（`:iterate`対応）、拡張プレフィックス（`sa`, `eb`, `ap`）をフルサポート
-- **BI/分析ツール連携** — JDBC/ODBC 経由で Tableau、Power BI 等から直接クエリ可能
 
 #### 従来ストレージとの比較
 
 | 項目 | Json（レガシー） | JsonAdvSQL（推奨） |
 |------|-----------------|-------------------|
 | 導入バージョン | 2024.1 より前 | **2024.1 以降（デフォルト）** |
-| SQL テーブル生成 | なし | **自動生成** |
 | コンパートメント検索 | 制限あり | **フルサポート** |
 | `_include` / `_revinclude` | 制限あり | **フルサポート**（`:iterate` 対応） |
 | 検索プレフィックス | 基本のみ | **`sa`, `eb`, `ap` 対応** |
 | パフォーマンス | 標準 | **大幅に改善** |
 
-#### テーブル構造
+#### FHIR データの SQL 分析
 
-```
-HSFHIR_X0001_S.Patient                        ← メインテーブル（1患者=1行）
-HSFHIR_X0001_S_Patient.family                 ← 姓の検索用サブテーブル
-HSFHIR_X0001_S_Patient.address                ← 住所の検索用サブテーブル
-HSFHIR_X0001_S_Patient.identifier             ← 識別子のサブテーブル
-HSFHIR_X0001_S.Observation                    ← Observationメインテーブル
-HSFHIR_X0001_S_Observation.valueQuantity      ← 測定値のサブテーブル
-HSFHIR_X0001_S_Observation.code               ← LOINCコードのサブテーブル
-HSFHIR_X0001_S.Condition                      ← 病名メインテーブル
-HSFHIR_X0001_S_Condition.code                 ← ICD-10コードのサブテーブル
-HSFHIR_X0001_S.AllergyIntolerance             ← アレルギーメインテーブル
-HSFHIR_X0001_S_AllergyIntolerance.code        ← アレルゲンのサブテーブル
-```
-
-- `X0001` — FHIR サーバーインスタンスの番号（複数エンドポイント作成時に増加）
-- `S` — Search テーブル（検索パラメータベースのインデックス）
-- メインテーブルには共通の検索パラメータ（`_id`, `_lastUpdated`, `subject` 等）が格納
-- サブテーブルにはリソース固有の検索パラメータ（`family`, `address`, `valueQuantity` 等）が展開
+FHIR データを SQL で分析する場合は、[FHIR SQL Builder](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRFSB_intro) を使用してプロジェクション（SQL ビュー）を定義する。BI/分析ツール（Tableau、Power BI 等）から JDBC/ODBC 経由で接続可能。
 
 ### Interoperability プロダクション構成
 
@@ -282,10 +248,8 @@ iris4h-demo/
 ├── demo/
 │   ├── 00_agenda.md             # デモ Agenda
 │   ├── 01_load_patients.sh      # デモデータ投入（患者20名+臨床データ）
-│   ├── 02_sql_queries.sql       # 基本 SQL クエリ集
 │   ├── 03_objectscript_queries.txt  # ObjectScript クエリ集
 │   ├── 04_oximeter_test.sh      # パルスオキシメーター デモスクリプト
-│   ├── 05_practical_sql_queries.sql # 実務 SQL クエリ集（22本）
 │   └── view_hl7.sh              # HL7 メッセージ UTF-8 表示ビューア
 │
 └── Out/                         # HL7 メッセージ出力先（実行時に生成）

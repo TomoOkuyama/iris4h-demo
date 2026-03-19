@@ -70,24 +70,14 @@ FHIR データを SQL でクエリ可能にするには:
   □ テーブルスキーマと FHIR 仕様変更の同期保守
 ```
 
-あるいは FHIR SQL Builder（GUI ツール）で手動定義する方法もあるが、
-対象カラムを1つずつ選択する必要がある。
+### IRIS for Health（FHIR SQL Builder）の場合
 
-### IRIS for Health（JsonAdvSQL）の場合
+FHIR SQL Builder（2023.1 以降正式サポート）を使えば、Management Portal の GUI で
+分析対象の FHIR リソースと要素を選択するだけで、SQL テーブル（プロジェクション）が生成される。
 
-```bash
-# FHIR リソースを POST するだけ
-curl -u _SYSTEM:SYS -X POST http://localhost:11202/.../fhir/r4/Patient \
-  -H "Content-Type: application/fhir+json" \
-  -d @patient.json
 ```
-
-**POST した瞬間に SQL テーブルが使える:**
-
-```sql
--- ETL 不要、テーブル定義不要、スキーマ保守不要
-SELECT Key, BirthDate, Gender FROM HSFHIR_X0001_S.Patient
-SELECT Key, value FROM HSFHIR_X0001_S_Patient.family WHERE value LIKE '%田%'
+FHIR SQL Builder へのアクセス:
+  Management Portal > Health > FHIR SQL Builder
 ```
 
 **書かなくて済んだコード:**
@@ -310,7 +300,8 @@ DB のデータを Python で処理するには:
 import iris
 
 # DB のデータに直接アクセスして処理
-rs = iris.sql.exec("SELECT * FROM HSFHIR_X0001_S.Patient")
+# ※ テーブル名は FHIR SQL Builder で定義したプロジェクションを使用
+rs = iris.sql.exec("SELECT * FROM MyFHIRProjection.Patient")
 for row in rs:
     # scikit-learn, transformers, pandas 等をそのまま使える
     # データは DB の外に出ていない
@@ -339,7 +330,7 @@ for row in rs:
 | レイヤー | 自前実装の場合 | IRIS for Health |
 |---------|-------------|-----------------|
 | FHIR サーバー | HAPI FHIR + RDB + 運用 | **3行で構築** |
-| SQL アクセス | ETL パイプライン構築 | **POST するだけで自動** |
+| SQL アクセス | ETL パイプライン構築 | **FHIR SQL Builder で GUI 定義** |
 | データ変換 | v2パーサー + マッピング実装 | **GUI（DTL）で定義** |
 | メッセージング | Kafka/RabbitMQ + アダプタ | **Production に組み込み** |
 | マルチモデル | FHIR + RDB + 検索エンジン + ETL | **1つのエンジンで5つのアクセス方法** |
@@ -369,10 +360,9 @@ for row in rs:
 | 機能 | デモでの確認方法 |
 |------|----------------|
 | FHIR サーバー 3行構築 | `dockerfiles/iris/Setup.cls` を参照 |
-| POST → SQL 自動マッピング | `demo/01_load_patients.sh` 実行後に `demo/02_sql_queries.sql` |
+| FHIR SQL Builder | Management Portal > Health > FHIR SQL Builder |
 | マルチモデルアクセス | `demo/03_objectscript_queries.txt`（同じデータに4つの方法でアクセス）|
 | BPL + DTL（GUI 定義のロジック） | `demo/04_oximeter_test.sh`（SpO2 → HL7 変換） |
 | ビジュアルトレース | Management Portal > Interoperability > Message Viewer |
 | 電子カルテ UI（FHIR API ベース） | `http://localhost:11202/csp/emr/index.html` |
-| 実務 SQL クエリ（22本） | `demo/05_practical_sql_queries.sql` |
 | Embedded Python | `docker exec -it iris4h iris session IRIS -U FHIRSERVER` から `##class(%SYS.Python).Shell()` |

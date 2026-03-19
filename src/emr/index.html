@@ -308,13 +308,14 @@ function renderSummary(cond,allerg,vitals,labs){
     const o=e.resource;
     if(o.valueQuantity){
       const cd=o.code.coding[0].code;
-      if(!latestBy[cd])latestBy[cd]={display:o.code.coding[0].display,val:o.valueQuantity.value,unit:o.valueQuantity.unit,dt:o.effectiveDateTime};
+      if(!latestBy[cd])latestBy[cd]={display:o.code.text||o.code.coding[0].display,val:o.valueQuantity.value,unit:o.valueQuantity.unit,dt:o.effectiveDateTime};
       const j=jVital(cd,o.valueQuantity.value);
       if(j.c==='danger'&&(cd==='2708-6'||cd==='59408-5'))hasSpO2Alert=true;
       if(j.c==='danger'&&cd==='8310-5')hasTempAlert=true;
     }else if(o.component){o.component.forEach(bp=>{
       const cd=bp.code.coding[0].code;
       if(!latestBy[cd])latestBy[cd]={display:bp.code.text||bp.code.coding[0].display,val:bp.valueQuantity.value,unit:bp.valueQuantity.unit,dt:o.effectiveDateTime};
+
       const j=jVital(cd,bp.valueQuantity.value);
       if(j.c==='danger')hasBPAlert=true;
     });}
@@ -335,7 +336,7 @@ function renderSummary(cond,allerg,vitals,labs){
   let labRows='';
   if(labs.entry){labs.entry.forEach(e=>{
     const o=e.resource;if(!o.valueQuantity)return;
-    const cd=o.code.coding[0].code,nm=o.code.coding[0].display,v=o.valueQuantity.value,u=o.valueQuantity.unit,dt=o.effectiveDateTime;
+    const cd=o.code.coding[0].code,nm=o.code.text||o.code.coding[0].display,v=o.valueQuantity.value,u=o.valueQuantity.unit,dt=o.effectiveDateTime;
     const j=jLab(cd,v);
     labRows+=`<tr class="${j.c==='danger'?'row-danger':j.c==='warning'?'row-warning':''}"><td>${esc(nm)}</td><td style="font-weight:700;">${v}</td><td>${u}</td><td>${fmtDt(dt)}</td><td>${badge(j)}</td></tr>`;
   });}
@@ -352,7 +353,7 @@ function renderVitals(vitals){
   if(vitals.entry){vitals.entry.forEach(e=>{
     const o=e.resource;
     if(o.valueQuantity){
-      const cd=o.code.coding[0].code,nm=o.code.coding[0].display,v=o.valueQuantity.value,u=o.valueQuantity.unit,dt=o.effectiveDateTime;
+      const cd=o.code.coding[0].code,nm=o.code.text||o.code.coding[0].display,v=o.valueQuantity.value,u=o.valueQuantity.unit,dt=o.effectiveDateTime;
       const j=jVital(cd,v);
       rows+=`<tr class="${j.c==='danger'?'row-danger':j.c==='warning'?'row-warning':''}"><td>${esc(nm)}</td><td style="font-weight:700;">${v}</td><td>${u}</td><td>${fmtDt(dt)}</td><td>${badge(j)}</td></tr>`;
     }else if(o.component){o.component.forEach(bp=>{
@@ -369,7 +370,7 @@ function renderLabs(labs){
   let rows='';
   if(labs.entry){labs.entry.forEach(e=>{
     const o=e.resource;if(!o.valueQuantity)return;
-    const cd=o.code.coding[0].code,nm=o.code.coding[0].display,v=o.valueQuantity.value,u=o.valueQuantity.unit,dt=o.effectiveDateTime;
+    const cd=o.code.coding[0].code,nm=o.code.text||o.code.coding[0].display,v=o.valueQuantity.value,u=o.valueQuantity.unit,dt=o.effectiveDateTime;
     const j=jLab(cd,v);
     rows+=`<tr class="${j.c==='danger'?'row-danger':j.c==='warning'?'row-warning':''}"><td>${esc(nm)}</td><td style="font-weight:700;">${v}</td><td>${u}</td><td>${fmtDt(dt)}</td><td>${badge(j)}</td></tr>`;
   });}
@@ -400,7 +401,7 @@ function renderOximeter(){
     this.disabled=true;
     const obs={resourceType:"Observation",meta:{profile:["http://hl7.org/fhir/StructureDefinition/vitalsigns"]},status:"final",
       category:[{coding:[{system:"http://terminology.hl7.org/CodeSystem/observation-category",code:"vital-signs",display:"Vital Signs"}]}],
-      code:{coding:[{system:"http://loinc.org",code:"2708-6",display:"Oxygen saturation in Arterial blood"},{system:"http://loinc.org",code:"59408-5",display:"Oxygen saturation in Arterial blood by Pulse oximetry"}]},
+      code:{coding:[{system:"http://loinc.org",code:"2708-6",display:"Oxygen saturation in Arterial blood"},{system:"http://loinc.org",code:"59408-5",display:"Oxygen saturation in Arterial blood by Pulse oximetry"}],text:"動脈血酸素飽和度 (SpO2)"},
       subject:{reference:"Patient/"+currentPatient.id},effectiveDateTime:new Date().toISOString(),
       valueQuantity:{value:parseInt(sl.value),unit:"%",system:"http://unitsofmeasure.org",code:"%"}};
     const bundle={resourceType:"Bundle",type:"transaction",entry:[

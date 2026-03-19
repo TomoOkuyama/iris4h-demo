@@ -15,31 +15,25 @@
 
 ---
 
-### 2. デモ①：FHIR R4 データのインポート & SQL クエリ（10分）
+### 2. デモ①：FHIR R4 データのインポート & FHIR SQL Builder（10分）
 
-**テーマ:** FHIRリソースを登録するだけで、SQLテーブルに自動マッピングされる
+**テーマ:** FHIRリソースを登録し、FHIR SQL Builder で SQL 分析用のビューを作成する
 
 - FHIR R4 エンドポイントに Patient / Observation / Condition / AllergyIntolerance を POST
-- Management Portal の SQL 実行画面で即座にクエリ
-- JsonAdvSQL ストレージ戦略（2024.1〜）による自動テーブル生成
-- メインテーブル + サブテーブル構造（検索パラメータ別）
+- JsonAdvSQL ストレージ戦略（2024.1〜）による FHIR REST API の検索性能向上
+- FHIR SQL Builder で分析用プロジェクション（SQL ビュー）を定義
+- JDBC/ODBC 経由で BI ツール（Tableau, Power BI 等）から接続可能
 
 ```
 デモURL:
-  FHIR API   http://localhost:11202/csp/healthshare/fhirserver/fhir/r4
-  SQL実行     Management Portal > System Explorer > SQL（ネームスペース: FHIRSERVER）
+  FHIR API          http://localhost:11202/csp/healthshare/fhirserver/fhir/r4
+  FHIR SQL Builder  Management Portal > Health > FHIR SQL Builder
 ```
 
 **実行スクリプト:**
 ```bash
 bash demo/01_load_patients.sh       # 患者20名 + 各種臨床データを登録
 ```
-```sql
--- SQLクエリ例（demo/02_sql_queries.sql）
-SELECT Key, BirthDate, Gender FROM HSFHIR_X0001_S.Patient
-```
-
-**実務的なSQLクエリ集:** `demo/05_practical_sql_queries.sql`（22本・8業務シチュエーション対応）
 
 ---
 
@@ -107,7 +101,8 @@ FHIR Bundle POST
 |------|-----------------|
 | FHIR R4 リポジトリ | REST API でリソースのCRUD |
 | マルチモデルアクセス | FHIR / SQL / ObjectScript / グローバル |
-| JsonAdvSQL | FHIRリソース → SQLテーブル自動マッピング（メイン+サブテーブル） |
+| JsonAdvSQL | FHIR REST API の検索性能・標準準拠性の向上 |
+| FHIR SQL Builder | FHIR データの SQL 分析用プロジェクション定義 |
 | Interoperability | FHIR → BPL → DTL → HL7 のリアルタイム変換 |
 | ビジュアルトレース | メッセージ処理フローの可視化 |
 | 電子カルテ UI | FHIR API ベースのWebアプリ（異常値ハイライト・アラートバッジ・オフライン対応） |

@@ -24,21 +24,12 @@ IRIS for Health の Vector Search 機能（2024.1〜）と JsonAdvSQL を組み�
 
 ## 2. 前提 — FHIR データはどこにあるか
 
-本デモ環境では、FHIR R4 リソースを POST すると JsonAdvSQL により SQL テーブルに自動格納される。
+本デモ環境では、FHIR R4 リソースを POST すると JsonAdvSQL ストレージ戦略により FHIR リポジトリにデータが格納される。FHIR データを SQL で分析する場合は、FHIR SQL Builder でプロジェクション（SQL ビュー）を定義する。
 
-```
-FHIR POST → JsonAdvSQL テーブル（自動生成）
+**しかし、FHIR SQL Builder のプロジェクションには VECTOR 型のカラムを追加できない。**
+FHIR 仕様にないベクトルカラムは、標準的な FHIR のデータモデルに含まれないためである。
 
-  HSFHIR_X0001_S.Patient             ← 患者情報
-  HSFHIR_X0001_S.Observation         ← 検査・バイタル
-  HSFHIR_X0001_S.Condition           ← 病名（ICD-10）
-  HSFHIR_X0001_S.AllergyIntolerance  ← アレルギー
-```
-
-**しかし、これらのテーブルには VECTOR 型のカラムがない。**
-JsonAdvSQL は FHIR 仕様に基づいてテーブルを自動生成するため、FHIR 仕様にないベクトルカラムを追加できない。
-
-つまり、**既存の FHIR テーブルだけではベクトル検索ができない**。
+つまり、**FHIR データのプロジェクションだけではベクトル検索ができない**。
 
 ---
 
@@ -74,9 +65,9 @@ FHIR テーブル（JsonAdvSQL）          CaseRecord テーブル（独自）
 └─────────────────────┘            └─────────────────────────┘
 ```
 
-- **FHIR テーブル** = 臨床データの本体（自動生成、変更不可）
+- **FHIR データ** = 臨床データの本体（FHIR SQL Builder のプロジェクション経由で SQL アクセス）
 - **CaseRecord** = ベクトル検索用のインデックス（独自テーブル、FHIR への参照キーを持つ）
-- 検索時は CaseRecord でベクトル検索し、参照キーで FHIR テーブルに JOIN して臨床詳細を取得
+- 検索時は CaseRecord でベクトル検索し、参照キーで FHIR データに JOIN して臨床詳細を取得
 
 ### テーブル定義（概念）
 
@@ -173,19 +164,21 @@ SymptomText = "片頭痛。頭が重い、目の奥が痛い。光過敏あり�
 
 運用開始時に、過去の FHIR データからバッチで CaseRecord を生成する。
 
-```sql
--- CaseRecord に未登録の Condition を抽出
-SELECT
-    c.Key AS ConditionRef,
-    c.subject_Reference AS PatientRef,
-    cc.value_Value AS ICD10Code,
-    cc.value_Text AS DiagnosisText
-FROM HSFHIR_X0001_S.Condition c
-JOIN HSFHIR_X0001_S_Condition.code cc ON cc.Key = c.Key
-WHERE c.Key NOT IN (SELECT ConditionRef FROM CaseRecord)
-```
+FHIR SQL Builder で定義したプロジェクション経由で、CaseRecord に未登録の Condition を抽出し、
+Python スクリプトで Embedding → INSERT する。
 
-この結果を Python スクリプトで Embedding → INSERT する。
+> **注:** 以下は概念的な SQL であり、実際のテーブル名は FHIR SQL Builder で定義したプロジェクション名に置き換える。
+
+```sql
+-- CaseRecord に未登録の Condition を抽出（概念例）
+SELECT
+    ConditionId,
+    PatientRef,
+    ICD10Code,
+    DiagnosisText
+FROM MyProjection.Condition
+WHERE ConditionId NOT IN (SELECT ConditionRef FROM CaseRecord)
+```
 
 ---
 
@@ -274,7 +267,9 @@ ORDER BY similarity DESC
 
 ### ④ FHIR データとの JOIN
 
-ベクトル検索で見つかった類似症例の臨床詳細を、JsonAdvSQL テーブルから取得する。
+ベクトル検索で見つかった類似症例の臨床詳細を、FHIR SQL Builder で定義したプロジェクション経由で取得する。
+
+> **注:** 以下は概念的な SQL であり、実際のテーブル名は FHIR SQL Builder で定義したプロジェクション名に置き換える。
 
 ```sql
 SELECT
@@ -283,8 +278,8 @@ SELECT
     cr.similarity,
     p.BirthDate,
     p.Gender,
-    vq.value_ValueLowRaw AS "検査値",
-    oc.value_Text AS "検査項目"
+    obs.Value AS "検査値",
+    obs.TestName AS "検査項目"
 FROM (
     SELECT TOP 5
         *,
@@ -292,14 +287,10 @@ FROM (
     FROM CaseRecord
     ORDER BY similarity DESC
 ) cr
-JOIN HSFHIR_X0001_S.Patient p
-    ON p.Key = cr.PatientRef
-LEFT JOIN HSFHIR_X0001_S.Observation o
-    ON o.subject_Reference = cr.PatientRef
-LEFT JOIN HSFHIR_X0001_S_Observation.valueQuantity vq
-    ON vq.Key = o.Key
-LEFT JOIN HSFHIR_X0001_S_Observation.code oc
-    ON oc.Key = o.Key
+JOIN MyProjection.Patient p
+    ON p.PatientId = cr.PatientRef
+LEFT JOIN MyProjection.Observation obs
+    ON obs.PatientRef = cr.PatientRef
 ```
 
 **ここが IRIS の最大の強み：ベクトル類似検索と FHIR 臨床データの JOIN が1つの SQL で完結する。**

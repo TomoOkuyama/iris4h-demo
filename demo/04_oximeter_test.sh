@@ -45,7 +45,7 @@ curl -s -u $AUTH -X POST "$FHIR_URL" \
                 "meta": {"profile": ["http://hl7.org/fhir/StructureDefinition/vitalsigns"]},
                 "status": "final",
                 "category": [{"coding": [{"system": "http://terminology.hl7.org/CodeSystem/observation-category", "code": "vital-signs", "display": "Vital Signs"}]}],
-                "code": {"coding": [{"system": "http://loinc.org", "code": "2708-6", "display": "Oxygen saturation in Arterial blood"}, {"system": "http://loinc.org", "code": "59408-5", "display": "Oxygen saturation in Arterial blood by Pulse oximetry"}]},
+                "code": {"coding": [{"system": "http://loinc.org", "code": "2708-6", "display": "Oxygen saturation in Arterial blood"}, {"system": "http://loinc.org", "code": "59408-5", "display": "Oxygen saturation in Arterial blood by Pulse oximetry"}], "text": "動脈血酸素飽和度 (SpO2)"},
                 "subject": {"reference": "Patient/1"},
                 "effectiveDateTime": "2026-03-17T16:00:00+09:00",
                 "valueQuantity": {"value": 85, "unit": "%", "system": "http://unitsofmeasure.org", "code": "%"}

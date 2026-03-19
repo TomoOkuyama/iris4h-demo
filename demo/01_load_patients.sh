@@ -118,7 +118,7 @@ for entry in "${SPO2_DATA[@]}"; do
     \"meta\": {\"profile\": [\"http://hl7.org/fhir/StructureDefinition/vitalsigns\"]},
     \"status\": \"final\",
     \"category\": [{\"coding\": [{\"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\", \"code\": \"vital-signs\", \"display\": \"Vital Signs\"}]}],
-    \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"2708-6\", \"display\": \"Oxygen saturation in Arterial blood\"}, {\"system\": \"http://loinc.org\", \"code\": \"59408-5\", \"display\": \"Oxygen saturation in Arterial blood by Pulse oximetry\"}]},
+    \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"2708-6\", \"display\": \"Oxygen saturation in Arterial blood\"}, {\"system\": \"http://loinc.org\", \"code\": \"59408-5\", \"display\": \"Oxygen saturation in Arterial blood by Pulse oximetry\"}], \"text\": \"動脈血酸素飽和度 (SpO2)\"},
     \"subject\": {\"reference\": \"Patient/$pid\"},
     \"effectiveDateTime\": \"$dt\",
     \"valueQuantity\": {\"value\": $val, \"unit\": \"%\", \"system\": \"http://unitsofmeasure.org\", \"code\": \"%\"}
@@ -168,7 +168,7 @@ for entry in "${TEMP_DATA[@]}"; do
     \"meta\": {\"profile\": [\"http://hl7.org/fhir/StructureDefinition/vitalsigns\"]},
     \"status\": \"final\",
     \"category\": [{\"coding\": [{\"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\", \"code\": \"vital-signs\", \"display\": \"Vital Signs\"}]}],
-    \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"8310-5\", \"display\": \"Body temperature\"}]},
+    \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"8310-5\", \"display\": \"Body temperature\"}], \"text\": \"体温\"},
     \"subject\": {\"reference\": \"Patient/$pid\"},
     \"effectiveDateTime\": \"$dt\",
     \"valueQuantity\": {\"value\": $val, \"unit\": \"Cel\", \"system\": \"http://unitsofmeasure.org\", \"code\": \"Cel\"}
@@ -205,12 +205,12 @@ for entry in "${BP_DATA[@]}"; do
     \"meta\": {\"profile\": [\"http://hl7.org/fhir/StructureDefinition/vitalsigns\"]},
     \"status\": \"final\",
     \"category\": [{\"coding\": [{\"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\", \"code\": \"vital-signs\", \"display\": \"Vital Signs\"}]}],
-    \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"85354-9\", \"display\": \"Blood pressure panel\"}]},
+    \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"85354-9\", \"display\": \"Blood pressure panel\"}], \"text\": \"血圧\"},
     \"subject\": {\"reference\": \"Patient/$pid\"},
     \"effectiveDateTime\": \"$dt\",
     \"component\": [
-      {\"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"8480-6\", \"display\": \"Systolic blood pressure\"}], \"text\": \"Systolic blood pressure\"}, \"valueQuantity\": {\"value\": $sys, \"unit\": \"mmHg\", \"system\": \"http://unitsofmeasure.org\", \"code\": \"mm[Hg]\"}},
-      {\"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"8462-4\", \"display\": \"Diastolic blood pressure\"}], \"text\": \"Diastolic blood pressure\"}, \"valueQuantity\": {\"value\": $dia, \"unit\": \"mmHg\", \"system\": \"http://unitsofmeasure.org\", \"code\": \"mm[Hg]\"}}
+      {\"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"8480-6\", \"display\": \"Systolic blood pressure\"}], \"text\": \"収縮期血圧\"}, \"valueQuantity\": {\"value\": $sys, \"unit\": \"mmHg\", \"system\": \"http://unitsofmeasure.org\", \"code\": \"mm[Hg]\"}},
+      {\"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"8462-4\", \"display\": \"Diastolic blood pressure\"}], \"text\": \"拡張期血圧\"}, \"valueQuantity\": {\"value\": $dia, \"unit\": \"mmHg\", \"system\": \"http://unitsofmeasure.org\", \"code\": \"mm[Hg]\"}}
     ]
   }"
 done
@@ -223,35 +223,35 @@ echo ""
 echo "=== Observation: 検査結果 ==="
 
 LAB_DATA=(
-  "1|2345-7|Glucose|112|mg/dL|2026-03-15T09:00:00+09:00"
-  "1|2345-7|Glucose|186|mg/dL|2026-03-16T14:30:00+09:00"
-  "2|2345-7|Glucose|95|mg/dL|2026-03-15T10:00:00+09:00"
-  "3|2345-7|Glucose|210|mg/dL|2026-03-15T11:00:00+09:00"
-  "5|2345-7|Glucose|145|mg/dL|2026-03-16T15:00:00+09:00"
-  "1|718-7|Hemoglobin|13.5|g/dL|2026-03-15T09:00:00+09:00"
-  "2|718-7|Hemoglobin|12.8|g/dL|2026-03-15T10:00:00+09:00"
-  "3|718-7|Hemoglobin|10.2|g/dL|2026-03-15T11:00:00+09:00"
-  "7|718-7|Hemoglobin|9.8|g/dL|2026-03-16T03:00:00+09:00"
-  "13|718-7|Hemoglobin|8.5|g/dL|2026-03-16T22:00:00+09:00"
-  "1|2160-0|Creatinine|0.9|mg/dL|2026-03-15T09:00:00+09:00"
-  "3|2160-0|Creatinine|1.8|mg/dL|2026-03-15T11:00:00+09:00"
-  "7|2160-0|Creatinine|2.3|mg/dL|2026-03-16T03:00:00+09:00"
-  "13|2160-0|Creatinine|3.1|mg/dL|2026-03-16T22:00:00+09:00"
-  "15|2160-0|Creatinine|1.1|mg/dL|2026-03-15T14:00:00+09:00"
-  "4|4548-4|HbA1c|5.6|%|2026-03-15T09:30:00+09:00"
-  "5|4548-4|HbA1c|8.2|%|2026-03-16T15:00:00+09:00"
-  "3|4548-4|HbA1c|9.5|%|2026-03-15T11:00:00+09:00"
-  "11|4548-4|HbA1c|7.1|%|2026-03-15T14:00:00+09:00"
-  "19|4548-4|HbA1c|6.8|%|2026-03-16T16:00:00+09:00"
+  "1|2345-7|Glucose|血糖|112|mg/dL|2026-03-15T09:00:00+09:00"
+  "1|2345-7|Glucose|血糖|186|mg/dL|2026-03-16T14:30:00+09:00"
+  "2|2345-7|Glucose|血糖|95|mg/dL|2026-03-15T10:00:00+09:00"
+  "3|2345-7|Glucose|血糖|210|mg/dL|2026-03-15T11:00:00+09:00"
+  "5|2345-7|Glucose|血糖|145|mg/dL|2026-03-16T15:00:00+09:00"
+  "1|718-7|Hemoglobin|ヘモグロビン|13.5|g/dL|2026-03-15T09:00:00+09:00"
+  "2|718-7|Hemoglobin|ヘモグロビン|12.8|g/dL|2026-03-15T10:00:00+09:00"
+  "3|718-7|Hemoglobin|ヘモグロビン|10.2|g/dL|2026-03-15T11:00:00+09:00"
+  "7|718-7|Hemoglobin|ヘモグロビン|9.8|g/dL|2026-03-16T03:00:00+09:00"
+  "13|718-7|Hemoglobin|ヘモグロビン|8.5|g/dL|2026-03-16T22:00:00+09:00"
+  "1|2160-0|Creatinine|クレアチニン|0.9|mg/dL|2026-03-15T09:00:00+09:00"
+  "3|2160-0|Creatinine|クレアチニン|1.8|mg/dL|2026-03-15T11:00:00+09:00"
+  "7|2160-0|Creatinine|クレアチニン|2.3|mg/dL|2026-03-16T03:00:00+09:00"
+  "13|2160-0|Creatinine|クレアチニン|3.1|mg/dL|2026-03-16T22:00:00+09:00"
+  "15|2160-0|Creatinine|クレアチニン|1.1|mg/dL|2026-03-15T14:00:00+09:00"
+  "4|4548-4|HbA1c|HbA1c|5.6|%|2026-03-15T09:30:00+09:00"
+  "5|4548-4|HbA1c|HbA1c|8.2|%|2026-03-16T15:00:00+09:00"
+  "3|4548-4|HbA1c|HbA1c|9.5|%|2026-03-15T11:00:00+09:00"
+  "11|4548-4|HbA1c|HbA1c|7.1|%|2026-03-15T14:00:00+09:00"
+  "19|4548-4|HbA1c|HbA1c|6.8|%|2026-03-16T16:00:00+09:00"
 )
 
 for entry in "${LAB_DATA[@]}"; do
-  IFS='|' read -r pid code display val unit dt <<< "$entry"
-  post_resource "Patient/$pid $display=$val$unit" "Observation" "{
+  IFS='|' read -r pid code display textja val unit dt <<< "$entry"
+  post_resource "Patient/$pid $textja=$val$unit" "Observation" "{
     \"resourceType\": \"Observation\",
     \"status\": \"final\",
     \"category\": [{\"coding\": [{\"system\": \"http://terminology.hl7.org/CodeSystem/observation-category\", \"code\": \"laboratory\", \"display\": \"Laboratory\"}]}],
-    \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"$code\", \"display\": \"$display\"}]},
+    \"code\": {\"coding\": [{\"system\": \"http://loinc.org\", \"code\": \"$code\", \"display\": \"$display\"}], \"text\": \"$textja\"},
     \"subject\": {\"reference\": \"Patient/$pid\"},
     \"effectiveDateTime\": \"$dt\",
     \"valueQuantity\": {\"value\": $val, \"unit\": \"$unit\", \"system\": \"http://unitsofmeasure.org\", \"code\": \"$unit\"}

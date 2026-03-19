@@ -4,6 +4,10 @@
 //
 // 接続方法:
 //   docker exec -it iris4h iris session IRIS -U FHIRSERVER
+//
+// ※注: 以下の SQL は JsonAdvSQL の内部テーブルに直接アクセスしており、
+//   マルチモデルアクセスのデモを目的としています。
+//   FHIR データの SQL 分析には FHIR SQL Builder の利用が推奨されます。
 // ============================================================
 
 // --- 方法1: ObjectScript から SQL を実行 ---
