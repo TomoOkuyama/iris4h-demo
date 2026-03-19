@@ -12,7 +12,6 @@ Docker Compose で起動するだけで、FHIR リポジトリ・電子カルテ
 - **FHIR R4 リポジトリ** — JsonAdvSQL ストレージ戦略による高性能な FHIR サーバーを体験
 - **電子カルテ UI** — FHIR API だけで動く患者サマリ画面（バイタル・病名・アレルギー・検査結果）
 - **Interoperability 連携** — SpO2 低下を検知して HL7 v2.5 メッセージを自動生成するフロー
-- **FHIR SQL Builder** — FHIR データを SQL で分析するための公式ツール（Management Portal から利用可能）
 - **マルチモデルアクセス** — 同じデータに FHIR REST / SQL / ObjectScript / グローバル変数でアクセス
 
 ---
@@ -68,19 +67,11 @@ bash demo/01_load_patients.sh    # デモデータ投入（起動完了後）
 
 ## デモシナリオ
 
-### シナリオ1: FHIR R4 リポジトリ & FHIR SQL Builder
+### シナリオ1: FHIR R4 リポジトリ
 
 FHIR リソースを POST するだけで FHIR R4 リポジトリにデータが格納される。JsonAdvSQL ストレージ戦略（2024.1〜）により、FHIR REST API の検索性能・標準準拠性・スケーラビリティが大幅に向上している。
 
-FHIR データを SQL で分析したい場合は、**FHIR SQL Builder** を利用する。Management Portal から GUI でプロジェクション（SQL ビュー）を定義し、必要な FHIR リソースの要素を選択して SQL テーブルを生成できる。
-
-```
-FHIR SQL Builder へのアクセス:
-  Management Portal > Health > FHIR SQL Builder
-  http://localhost:11202/csp/healthshare/fhirserver/fhir/portal/index.html
-```
-
-参考: [FHIR SQL Builder ドキュメント](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRFSB_intro)
+FHIR データを SQL で分析したい場合は、[FHIR SQL Builder](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRFSB_intro) で SQL テーブルを生成できる（`http://localhost:11202/csp/fhirsql/index.html`）。
 
 ### シナリオ2: マルチモデルアクセス
 
@@ -175,10 +166,6 @@ FHIR R4 API を直接呼び出す電子カルテ風 UI。単体 HTML で動作�
 | Condition | 23件 | 糖尿病・高血圧・CKD・心不全・COPD・喘息・肺炎・睡眠時無呼吸 |
 | AllergyIntolerance | 10件 | 薬剤（ペニシリン等）・食物（そば等）・環境（花粉等） |
 
-### FHIR SQL Builder
-
-FHIR データを SQL で分析する場合は、[FHIR SQL Builder](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRFSB_intro)（2023.1 以降正式サポート）の利用が推奨される。Management Portal の GUI から、分析対象の FHIR リソースと要素を選択してプロジェクション（SQL ビュー）を定義できる。JDBC/ODBC 経由で Tableau、Power BI 等の BI ツールからも接続可能。
-
 ---
 
 ## 技術詳細
@@ -190,6 +177,7 @@ IRIS for Health 2024.1 で導入された FHIR サーバーのデフォルトス
 **特徴:**
 - **検索性能の向上** — コンパートメント検索、`_include`/`_revinclude`（`:iterate`対応）、拡張プレフィックス（`sa`, `eb`, `ap`）をフルサポート
 - **マルチモデルアクセス** — FHIR REST / SQL / ObjectScript / グローバル変数の 4 方式で同時アクセス
+- **SQL 分析** — [FHIR SQL Builder](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRFSB_intro) でプロジェクションを定義すれば、BI ツール（Tableau、Power BI 等）から JDBC/ODBC 接続可能
 
 #### 従来ストレージとの比較
 
@@ -200,10 +188,6 @@ IRIS for Health 2024.1 で導入された FHIR サーバーのデフォルトス
 | `_include` / `_revinclude` | 制限あり | **フルサポート**（`:iterate` 対応） |
 | 検索プレフィックス | 基本のみ | **`sa`, `eb`, `ap` 対応** |
 | パフォーマンス | 標準 | **大幅に改善** |
-
-#### FHIR データの SQL 分析
-
-FHIR データを SQL で分析する場合は、[FHIR SQL Builder](https://docs.intersystems.com/irisforhealthlatest/csp/docbook/DocBook.UI.Page.cls?KEY=HXFHIRFSB_intro) を使用してプロジェクション（SQL ビュー）を定義する。BI/分析ツール（Tableau、Power BI 等）から JDBC/ODBC 経由で接続可能。
 
 ### Interoperability プロダクション構成
 
