@@ -15,19 +15,18 @@
 
 ---
 
-### 2. デモ①：FHIR R4 データのインポート & FHIR SQL Builder（10分）
+### 2. デモ①：FHIR R4 データのインポート & SQL 分析（10分）
 
-**テーマ:** FHIRリソースを登録し、FHIR SQL Builder で SQL 分析用のビューを作成する
+**テーマ:** FHIRリソースを登録し、SQL で分析可能な状態にする
 
 - FHIR R4 エンドポイントに Patient / Observation / Condition / AllergyIntolerance を POST
 - JsonAdvSQL ストレージ戦略（2024.1〜）による FHIR REST API の検索性能向上
-- FHIR SQL Builder で分析用プロジェクション（SQL ビュー）を定義
-- JDBC/ODBC 経由で BI ツール（Tableau, Power BI 等）から接続可能
+- FHIR SQL Builder でプロジェクションを定義 → SQL / BI ツールからアクセス可能
 
 ```
 デモURL:
   FHIR API          http://localhost:11202/csp/healthshare/fhirserver/fhir/r4
-  FHIR SQL Builder  Management Portal > Health > FHIR SQL Builder
+  FHIR SQL Builder  http://localhost:11202/csp/fhirsql/index.html
 ```
 
 **実行スクリプト:**
@@ -102,7 +101,7 @@ FHIR Bundle POST
 | FHIR R4 リポジトリ | REST API でリソースのCRUD |
 | マルチモデルアクセス | FHIR / SQL / ObjectScript / グローバル |
 | JsonAdvSQL | FHIR REST API の検索性能・標準準拠性の向上 |
-| FHIR SQL Builder | FHIR データの SQL 分析用プロジェクション定義 |
+| SQL 分析 | FHIR SQL Builder でプロジェクション定義 → BI 連携 |
 | Interoperability | FHIR → BPL → DTL → HL7 のリアルタイム変換 |
 | ビジュアルトレース | メッセージ処理フローの可視化 |
 | 電子カルテ UI | FHIR API ベースのWebアプリ（異常値ハイライト・アラートバッジ・オフライン対応） |

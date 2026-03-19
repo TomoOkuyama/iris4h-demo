@@ -70,15 +70,9 @@ FHIR データを SQL でクエリ可能にするには:
   □ テーブルスキーマと FHIR 仕様変更の同期保守
 ```
 
-### IRIS for Health（FHIR SQL Builder）の場合
+### IRIS for Health の場合
 
-FHIR SQL Builder（2023.1 以降正式サポート）を使えば、Management Portal の GUI で
-分析対象の FHIR リソースと要素を選択するだけで、SQL テーブル（プロジェクション）が生成される。
-
-```
-FHIR SQL Builder へのアクセス:
-  Management Portal > Health > FHIR SQL Builder
-```
+FHIR SQL Builder の GUI で分析対象の FHIR リソースと要素を選択するだけで、SQL テーブル（プロジェクション）が生成される。
 
 **書かなくて済んだコード:**
 - ETL パイプライン全体（設計・実装・テスト・保守）
@@ -300,7 +294,7 @@ DB のデータを Python で処理するには:
 import iris
 
 # DB のデータに直接アクセスして処理
-# ※ テーブル名は FHIR SQL Builder で定義したプロジェクションを使用
+# ※ テーブル名はプロジェクションで定義したものを使用
 rs = iris.sql.exec("SELECT * FROM FHIRDemo.Patient")
 for row in rs:
     # scikit-learn, transformers, pandas 等をそのまま使える
@@ -330,7 +324,7 @@ for row in rs:
 | レイヤー | 自前実装の場合 | IRIS for Health |
 |---------|-------------|-----------------|
 | FHIR サーバー | HAPI FHIR + RDB + 運用 | **3行で構築** |
-| SQL アクセス | ETL パイプライン構築 | **FHIR SQL Builder で GUI 定義** |
+| SQL アクセス | ETL パイプライン構築 | **GUI でプロジェクション定義** |
 | データ変換 | v2パーサー + マッピング実装 | **GUI（DTL）で定義** |
 | メッセージング | Kafka/RabbitMQ + アダプタ | **Production に組み込み** |
 | マルチモデル | FHIR + RDB + 検索エンジン + ETL | **1つのエンジンで5つのアクセス方法** |
@@ -360,7 +354,7 @@ for row in rs:
 | 機能 | デモでの確認方法 |
 |------|----------------|
 | FHIR サーバー 3行構築 | `dockerfiles/iris/Setup.cls` を参照 |
-| FHIR SQL Builder | Management Portal > Health > FHIR SQL Builder |
+| SQL 分析（FHIR SQL Builder） | `http://localhost:11202/csp/fhirsql/index.html` |
 | マルチモデルアクセス | `demo/03_objectscript_queries.txt`（同じデータに4つの方法でアクセス）|
 | BPL + DTL（GUI 定義のロジック） | `demo/04_oximeter_test.sh`（SpO2 → HL7 変換） |
 | ビジュアルトレース | Management Portal > Interoperability > Message Viewer |

@@ -24,10 +24,7 @@ IRIS for Health の Vector Search 機能（2024.1〜）と JsonAdvSQL を組み�
 
 ## 2. 前提 — FHIR データはどこにあるか
 
-本デモ環境では、FHIR R4 リソースを POST すると JsonAdvSQL ストレージ戦略により FHIR リポジトリにデータが格納される。FHIR データを SQL で分析する場合は、FHIR SQL Builder でプロジェクション（SQL ビュー）を定義する。
-
-**しかし、FHIR SQL Builder のプロジェクションには VECTOR 型のカラムを追加できない。**
-FHIR 仕様にないベクトルカラムは、標準的な FHIR のデータモデルに含まれないためである。
+本デモ環境では、FHIR R4 リソースを POST すると JsonAdvSQL ストレージ戦略により FHIR リポジトリにデータが格納される。FHIR SQL Builder でプロジェクションを定義すれば SQL でもアクセスできるが、**プロジェクションには VECTOR 型のカラムを追加できない**。
 
 つまり、**FHIR データのプロジェクションだけではベクトル検索ができない**。
 
@@ -65,7 +62,7 @@ FHIR テーブル（JsonAdvSQL）          CaseRecord テーブル（独自）
 └─────────────────────┘            └─────────────────────────┘
 ```
 
-- **FHIR データ** = 臨床データの本体（FHIR SQL Builder のプロジェクション経由で SQL アクセス）
+- **FHIR データ** = 臨床データの本体（プロジェクション経由で SQL アクセス）
 - **CaseRecord** = ベクトル検索用のインデックス（独自テーブル、FHIR への参照キーを持つ）
 - 検索時は CaseRecord でベクトル検索し、参照キーで FHIR データに JOIN して臨床詳細を取得
 
@@ -164,10 +161,9 @@ SymptomText = "片頭痛。頭が重い、目の奥が痛い。光過敏あり�
 
 運用開始時に、過去の FHIR データからバッチで CaseRecord を生成する。
 
-FHIR SQL Builder で定義したプロジェクション経由で、CaseRecord に未登録の Condition を抽出し、
-Python スクリプトで Embedding → INSERT する。
+プロジェクション経由で CaseRecord に未登録の Condition を抽出し、Python スクリプトで Embedding → INSERT する。
 
-> **注:** 以下は概念的な SQL であり、実際のテーブル名は FHIR SQL Builder で定義したプロジェクション名に置き換える。
+> **注:** 以下は概念的な SQL であり、実際のテーブル名はプロジェクション名に置き換える。
 
 ```sql
 -- CaseRecord に未登録の Condition を抽出（概念例）
@@ -267,9 +263,9 @@ ORDER BY similarity DESC
 
 ### ④ FHIR データとの JOIN
 
-ベクトル検索で見つかった類似症例の臨床詳細を、FHIR SQL Builder で定義したプロジェクション経由で取得する。
+ベクトル検索で見つかった類似症例の臨床詳細を、プロジェクション経由で取得する。
 
-> **注:** 以下は概念的な SQL であり、実際のテーブル名は FHIR SQL Builder で定義したプロジェクション名に置き換える。
+> **注:** 以下は概念的な SQL であり、実際のテーブル名はプロジェクション名に置き換える。
 
 ```sql
 SELECT
