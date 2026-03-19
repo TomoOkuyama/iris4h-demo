@@ -43,28 +43,31 @@ WHERE a.value LIKE '%東京都%'
 -- 2-1. 特定患者の病名一覧（Patient/1 山田太郎）
 --   想定: 診察開始前に、この患者が持つ全疾患を確認。
 --   既往歴・現病歴の把握に使う。ICD-10コードと発症日で時系列を追える。
-SELECT
+SELECT DISTINCT
     cc.value_Value AS "ICD-10",
     cc.value_Text AS "病名",
-    c.onset_StartRaw AS "発症日"
+    od.value_StartRaw AS "発症日"
 FROM HSFHIR_X0001_S_Condition.code cc
 JOIN HSFHIR_X0001_S.Condition c ON c.Key = cc.Key
+LEFT JOIN HSFHIR_X0001_S_Condition.onsetDate od ON od.Key = c.Key
 WHERE c.subject_Reference = 'Patient/1'
+
 
 -- 2-2. 特定患者のアレルギー情報
 --   想定: 処方を出す前に、薬剤アレルギーがないか確認。
 --   ペニシリンアレルギーがあればβラクタム系全般を避ける判断材料になる。
-SELECT
+SELECT DISTINCT
     ac.value_Text AS "アレルゲン",
     a.criticality AS "重症度"
 FROM HSFHIR_X0001_S_AllergyIntolerance.code ac
 JOIN HSFHIR_X0001_S.AllergyIntolerance a ON a.Key = ac.Key
 WHERE a.patient_Reference = 'Patient/1'
 
+
 -- 2-3. 特定患者のバイタルサイン履歴（SpO2の推移）
 --   想定: 肺炎で入院中の山田太郎のSpO2を時系列で確認。
 --   97%→88%への急落を把握し、酸素投与の判断に使う。
-SELECT
+SELECT DISTINCT
     vq.value_ValueLowRaw AS "SpO2(%)",
     o.date_StartRaw AS "測定日時"
 FROM HSFHIR_X0001_S_Observation.valueQuantity vq
@@ -77,7 +80,7 @@ ORDER BY o.date_StartRaw
 -- 2-4. 特定患者の全検査結果一覧
 --   想定: 山田太郎の直近の採血結果を一覧で確認。
 --   血糖値112→186の上昇（肺炎によるストレス性高血糖）を発見できる。
-SELECT
+SELECT DISTINCT
     oc.value_Text AS "検査項目",
     vq.value_ValueLowRaw AS "値",
     vq.value_Unit AS "単位",
@@ -86,6 +89,7 @@ FROM HSFHIR_X0001_S_Observation.valueQuantity vq
 JOIN HSFHIR_X0001_S.Observation o ON o.Key = vq.Key
 JOIN HSFHIR_X0001_S_Observation.code oc ON oc.Key = o.Key
 WHERE o.subject_Reference = 'Patient/1'
+
 ORDER BY o.date_StartRaw
 
 
@@ -98,7 +102,7 @@ ORDER BY o.date_StartRaw
 -- 3-1. SpO2 が 90% 未満の患者を緊急抽出
 --   想定: 夜勤帯の看護師が、酸素化が悪化している患者を一覧で確認。
 --   SpO2が低い順にソートし、最も重症な患者（渡辺大輔 78%）を最優先で対応。
-SELECT
+SELECT DISTINCT
     o.subject_Reference AS "患者",
     vq.value_ValueLowRaw AS "SpO2(%)",
     o.date_StartRaw AS "測定日時"
@@ -112,7 +116,7 @@ ORDER BY CAST(vq.value_ValueLowRaw AS NUMERIC) ASC
 -- 3-2. 発熱患者の一覧（体温 37.5℃ 以上）
 --   想定: 院内感染対策チーム（ICT）が、発熱患者を一括抽出。
 --   複数患者の同時発熱があれば、院内感染アウトブレイクの早期発見に繋がる。
-SELECT
+SELECT DISTINCT
     o.subject_Reference AS "患者",
     vq.value_ValueLowRaw AS "体温(℃)",
     o.date_StartRaw AS "測定日時"
@@ -134,6 +138,7 @@ FROM (
     JOIN HSFHIR_X0001_S.Observation o ON o.Key = vq.Key
     JOIN HSFHIR_X0001_S_Observation.code oc ON oc.Key = o.Key
     WHERE oc.value_Value = '2708-6'
+    
       AND CAST(vq.value_ValueLowRaw AS NUMERIC) < 90
 ) spo2_q
 JOIN (
@@ -142,6 +147,7 @@ JOIN (
     JOIN HSFHIR_X0001_S.Observation o ON o.Key = vq.Key
     JOIN HSFHIR_X0001_S_Observation.code oc ON oc.Key = o.Key
     WHERE oc.value_Value = '8310-5'
+    
       AND CAST(vq.value_ValueLowRaw AS NUMERIC) >= 37.5
 ) temp_q ON spo2_q.subject = temp_q.subject
 
@@ -156,38 +162,40 @@ JOIN (
 --   想定: 肺炎患者に抗生物質を処方する前に確認。
 --   ペニシリンアレルギーの患者にはセフェム系も交差反応のリスクがあるため、
 --   両方を一括検索。該当患者にはニューキノロン系等を選択する。
-SELECT
+SELECT DISTINCT
     a.patient_Reference AS "患者",
     ac.value_Text AS "アレルゲン",
     a.criticality AS "重症度"
 FROM HSFHIR_X0001_S_AllergyIntolerance.code ac
 JOIN HSFHIR_X0001_S.AllergyIntolerance a ON a.Key = ac.Key
-WHERE ac.value_Text LIKE '%ペニシリン%'
-   OR ac.value_Text LIKE '%セフェム%'
+WHERE (ac.value_Text LIKE '%ペニシリン%'
+   OR ac.value_Text LIKE '%セフェム%')
 
 -- 4-2. 薬剤アレルギーのある全患者一覧
 --   想定: 薬局で調剤時に注意が必要な患者のリストを作成。
 --   入院時にリストバンドへのアレルギー表示を行う際の元データとしても使う。
-SELECT
+SELECT DISTINCT
     a.patient_Reference AS "患者",
     ac.value_Text AS "アレルゲン",
     a.criticality AS "重症度"
 FROM HSFHIR_X0001_S_AllergyIntolerance.code ac
 JOIN HSFHIR_X0001_S.AllergyIntolerance a ON a.Key = ac.Key
 JOIN HSFHIR_X0001_S_AllergyIntolerance.category cat ON cat.Key = a.Key
-WHERE cat.value = 'medication'
+WHERE cat.value_Value = 'medication'
+
 
 -- 4-3. 食物アレルギーのある患者一覧
 --   想定: 栄養科が入院患者の食事オーダーを作成する際に確認。
 --   そばアレルギー(重症度:high)の患者には、製造ラインの共用も避ける必要がある。
-SELECT
+SELECT DISTINCT
     a.patient_Reference AS "患者",
     ac.value_Text AS "アレルゲン",
     a.criticality AS "重症度"
 FROM HSFHIR_X0001_S_AllergyIntolerance.code ac
 JOIN HSFHIR_X0001_S.AllergyIntolerance a ON a.Key = ac.Key
 JOIN HSFHIR_X0001_S_AllergyIntolerance.category cat ON cat.Key = a.Key
-WHERE cat.value = 'food'
+WHERE cat.value_Value = 'food'
+
 
 
 -- ================================================================
@@ -199,7 +207,7 @@ WHERE cat.value = 'food'
 -- 5-1. 糖尿病患者のHbA1c一覧（コントロール状態の把握）
 --   想定: 糖尿病外来の医師が、担当患者のHbA1cを一覧で確認。
 --   高い順にソートし、コントロール不良の患者から優先的に治療方針を見直す。
-SELECT
+SELECT DISTINCT
     o.subject_Reference AS "患者",
     vq.value_ValueLowRaw AS "HbA1c(%)",
     o.date_StartRaw AS "検査日"
@@ -212,7 +220,7 @@ ORDER BY CAST(vq.value_ValueLowRaw AS NUMERIC) DESC
 -- 5-2. HbA1c 7.0% 以上の患者を抽出（治療強化が必要）
 --   想定: 日本糖尿病学会のガイドラインでは HbA1c 7.0% 未満が合併症予防の
 --   目標値。これを超える患者をリストアップし、インスリン導入や薬剤変更を検討。
-SELECT
+SELECT DISTINCT
     o.subject_Reference AS "患者",
     vq.value_ValueLowRaw AS "HbA1c(%)",
     o.date_StartRaw AS "検査日"
@@ -227,7 +235,7 @@ ORDER BY CAST(vq.value_ValueLowRaw AS NUMERIC) DESC
 --   想定: 糖尿病の三大合併症の一つ「腎症」の進行を早期発見するため、
 --   糖尿病の病名(E11.9)を持つ患者のうち、クレアチニンが1.5超の患者を抽出。
 --   結果: P3(Cr1.8 CKD3), P13(Cr3.1 CKD5) → 腎症が進行している患者。
-SELECT
+SELECT DISTINCT
     o.subject_Reference AS "患者",
     vq.value_ValueLowRaw AS "Cr(mg/dL)",
     o.date_StartRaw AS "検査日"
@@ -241,6 +249,7 @@ WHERE oc.value_Value = '2160-0'
       FROM HSFHIR_X0001_S.Condition c
       JOIN HSFHIR_X0001_S_Condition.code cc ON cc.Key = c.Key
       WHERE cc.value_Value = 'E11.9'
+      
   )
 ORDER BY CAST(vq.value_ValueLowRaw AS NUMERIC) DESC
 
@@ -254,13 +263,14 @@ ORDER BY CAST(vq.value_ValueLowRaw AS NUMERIC) DESC
 -- 6-1. 慢性腎臓病の患者とステージ一覧
 --   想定: 腎臓内科の外来で、CKD患者を ICD-10（N18.x）で一括抽出。
 --   ステージ3→4→5の進行状況を確認し、透析導入のタイミングを検討する。
-SELECT
+SELECT DISTINCT
     c.subject_Reference AS "患者",
     cc.value_Text AS "病名",
     cc.value_Value AS "ICD-10",
-    c.onset_StartRaw AS "診断日"
+    od.value_StartRaw AS "診断日"
 FROM HSFHIR_X0001_S_Condition.code cc
 JOIN HSFHIR_X0001_S.Condition c ON c.Key = cc.Key
+LEFT JOIN HSFHIR_X0001_S_Condition.onsetDate od ON od.Key = c.Key
 WHERE cc.value_Value LIKE 'N18%'
 ORDER BY cc.value_Value
 
@@ -268,7 +278,7 @@ ORDER BY cc.value_Value
 --   想定: CKDの進行に伴い腎性貧血が出現する。Cr上昇とHb低下の相関を確認し、
 --   ESA（エリスロポエチン製剤）の投与開始を判断する。
 --   結果: P7(Cr2.3/Hb9.8), P13(Cr3.1/Hb8.5) → CKD進行に伴う貧血を確認。
-SELECT
+SELECT DISTINCT
     o.subject_Reference AS "患者",
     oc.value_Text AS "検査項目",
     vq.value_ValueLowRaw AS "値",
@@ -281,6 +291,7 @@ WHERE o.subject_Reference IN (
     FROM HSFHIR_X0001_S.Condition c
     JOIN HSFHIR_X0001_S_Condition.code cc ON cc.Key = c.Key
     WHERE cc.value_Value LIKE 'N18%'
+    
 )
 AND oc.value_Value IN ('2160-0', '718-7')
 ORDER BY o.subject_Reference, oc.value_Text
@@ -295,7 +306,7 @@ ORDER BY o.subject_Reference, oc.value_Text
 -- 7-1. 疾患別の患者数（ICD-10コード別）
 --   想定: 医事課がDPC対象疾患の患者数を集計。
 --   高血圧(7名)・糖尿病(6名)が上位 → 生活習慣病クリニカルパスの整備を検討。
-SELECT
+SELECT DISTINCT
     cc.value_Value AS "ICD-10",
     cc.value_Text AS "病名",
     COUNT(DISTINCT c.subject_Reference) AS "患者数"
@@ -307,7 +318,7 @@ ORDER BY COUNT(DISTINCT c.subject_Reference) DESC
 -- 7-2. 検査種別ごとの実施件数
 --   想定: 臨床検査部が月次の検査実施件数を集計。
 --   LOINCコード別に件数を把握し、試薬の発注計画や人員配置の参考にする。
-SELECT
+SELECT DISTINCT
     oc.value_Text AS "検査項目",
     oc.value_Value AS "LOINCコード",
     COUNT(*) AS "実施件数"
@@ -319,7 +330,7 @@ ORDER BY COUNT(*) DESC
 --   想定: 地域包括ケア病棟の看護師長が、多疾患併存（マルチモビディティ）の
 --   患者を把握。疾患数が多い患者ほどケアの複雑性が高く、退院調整に時間を要する。
 --   結果: P7, P13が3疾患 → 退院前カンファレンスの優先対象。
-SELECT
+SELECT DISTINCT
     c.subject_Reference AS "患者",
     COUNT(DISTINCT cc.value_Value) AS "疾患数"
 FROM HSFHIR_X0001_S.Condition c
@@ -331,11 +342,11 @@ ORDER BY COUNT(DISTINCT cc.value_Value) DESC
 -- 7-4. アレルギーカテゴリ別の件数
 --   想定: 医療安全管理室が院内のアレルギー登録状況を把握。
 --   薬剤アレルギーの登録率が低ければ、入院時のアレルギー聴取を強化する。
-SELECT
-    cat.value AS "カテゴリ",
+SELECT DISTINCT
+    cat.value_Value AS "カテゴリ",
     COUNT(*) AS "件数"
 FROM HSFHIR_X0001_S_AllergyIntolerance.category cat
-GROUP BY cat.value
+GROUP BY cat.value_Value
 
 
 -- ================================================================
@@ -352,7 +363,7 @@ GROUP BY cat.value
 --       → 利尿薬増量と酸素投与を検討。
 --   例: 山田太郎(SpO2:88%) → 糖尿病+高血圧+肺炎、ペニシリンアレルギー
 --       → ペニシリン以外の抗生物質を選択する必要あり。
-SELECT
+SELECT DISTINCT
     o.subject_Reference AS "患者",
     vq.value_ValueLowRaw AS "SpO2(%)",
     cc.value_Text AS "病名",
@@ -361,10 +372,9 @@ FROM HSFHIR_X0001_S_Observation.valueQuantity vq
 JOIN HSFHIR_X0001_S.Observation o ON o.Key = vq.Key
 JOIN HSFHIR_X0001_S_Observation.code oc ON oc.Key = o.Key
 LEFT JOIN HSFHIR_X0001_S.Condition c ON c.subject_Reference = o.subject_Reference
-LEFT JOIN HSFHIR_X0001_S_Condition.code cc ON cc.Key = c.Key
-LEFT JOIN HSFHIR_X0001_S.AllergyIntolerance a ON a.patient_Reference = o.subject_Reference
-LEFT JOIN HSFHIR_X0001_S_AllergyIntolerance.code ac ON ac.Key = a.Key
-WHERE oc.value_Value = '2708-6'
+LEFT JOIN HSFHIR_X0001_S_Condition.code cc ON cc.Key = c.KeyLEFT JOIN HSFHIR_X0001_S.AllergyIntolerance a ON a.patient_Reference = o.subject_Reference
+LEFT JOIN HSFHIR_X0001_S_AllergyIntolerance.code ac ON ac.Key = a.KeyWHERE oc.value_Value = '2708-6'
+
   AND CAST(vq.value_ValueLowRaw AS NUMERIC) < 90
 ORDER BY CAST(vq.value_ValueLowRaw AS NUMERIC) ASC
 

@@ -23,7 +23,7 @@ FROM HSFHIR_X0001_S_Patient.address
 
 -- 4. Observation の SpO2 値（valueQuantity サブテーブル）
 --   測定値はサブテーブルに格納される
-SELECT
+SELECT DISTINCT
     vq.Key AS "Observation ID",
     o.subject_Reference AS "患者",
     vq.value_ValueLowRaw AS "SpO2(%)",
@@ -35,7 +35,8 @@ JOIN HSFHIR_X0001_S_Observation.code oc ON oc.Key = o.Key
 WHERE oc.value_Value = '2708-6'
 
 -- 5. 病名一覧（Condition + code サブテーブル）
-SELECT
+--   DISTINCT で coding 行と text 行の重複を防止
+SELECT DISTINCT
     c.subject_Reference AS "患者",
     cc.value_Value AS "ICD-10",
     cc.value_Text AS "病名"
@@ -43,7 +44,7 @@ FROM HSFHIR_X0001_S_Condition.code cc
 JOIN HSFHIR_X0001_S.Condition c ON c.Key = cc.Key
 
 -- 6. アレルギー一覧
-SELECT
+SELECT DISTINCT
     a.patient_Reference AS "患者",
     ac.value_Text AS "アレルゲン",
     a.criticality AS "重症度"
@@ -63,4 +64,9 @@ JOIN HSFHIR_X0001_S.AllergyIntolerance a ON a.Key = ac.Key
 -- HSFHIR_X0001_S_Condition.code    ← ICD-10コードのサブテーブル
 --
 -- X0001 = FHIRサーバーインスタンス番号、S = Search テーブル
+--
+-- code サブテーブルの注意点:
+--   FHIR の code 要素は coding（コード体系+display）と text（自由テキスト）で構成される。
+--   JsonAdvSQL では両方が別の行として格納されるため、
+--   SELECT DISTINCT で重複行を除去する。
 -- ============================================================
